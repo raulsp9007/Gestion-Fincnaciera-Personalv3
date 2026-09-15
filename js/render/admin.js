@@ -301,6 +301,8 @@ function openShareDeudasModal(editId) {
   document.getElementById('sdm-name').value  = m?.name ?? 'Deudas compartidas';
   document.getElementById('sdm-sheet').value = m?.sheetName ?? '_shared_deudas';
   document.getElementById('sdm-error').textContent = '';
+  document.getElementById('sdm-new-only').style.display = editId ? 'none' : '';
+  document.getElementById('sdm-copy-local').checked = false;
 
   const users = loadUsers().filter(u => u.id !== currentUser.id);
   const shared = m?.sharedWith ?? [];
@@ -353,7 +355,9 @@ async function saveSharedDeudasConfig() {
     if (editId) {
       updateSharedDeudasMenu(parseInt(editId, 10), { name, sheetName, sharedWith });
     } else {
-      addSharedDeudasMenu({ name, sheetName, sharedWith });
+      const copyLocal = document.getElementById('sdm-copy-local')?.checked;
+      const initialData = copyLocal ? JSON.parse(JSON.stringify(loadData().deudas ?? [])) : [];
+      addSharedDeudasMenu({ name, sheetName, sharedWith, data: initialData });
     }
     await pushSharedDeudasConfig();
     buildNav();

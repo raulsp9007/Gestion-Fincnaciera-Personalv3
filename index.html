@@ -516,6 +516,12 @@
           <button class="btn btn-ghost btn-sm"   onclick="manualPushUsers()">👥 Subir usuarios</button>
           <span id="admin-gas-status" style="font-size:.75rem">No configurada</span>
         </div>
+
+        <div class="section-title">Mantenimiento</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="hardRefreshApp()">🧹 Limpiar caché y recargar</button>
+          <span style="font-size:.72rem;color:var(--text2)">Borra caché del service worker y fuerza la última versión. No borra tus datos.</span>
+        </div>
       </div>
 
     </div><!-- /scroll -->
@@ -674,6 +680,15 @@
     <div class="form-row">
       <label>Acceso para usuarios</label>
       <div id="sdm-users" style="max-height:200px;overflow-y:auto;background:var(--bg3);border-radius:8px;padding:8px 12px;border:1px solid var(--border)"></div>
+    </div>
+    <div id="sdm-new-only" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <div style="font-size:.78rem;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px 12px">
+        ⚠️ Esto crea un pool <strong>independiente y vacío</strong>. Tus deudas locales actuales NO se copian aquí automáticamente.
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:.85rem">
+        <input type="checkbox" id="sdm-copy-local">
+        Copiar mis deudas locales aquí (una sola vez, al crear)
+      </label>
     </div>
     <div class="login-error" id="sdm-error"></div>
     <div class="modal-actions">
