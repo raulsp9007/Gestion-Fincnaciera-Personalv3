@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<style>
+  body{margin:0}
+  .cm-sidebar{display:none}
+  .cm-bottomnav{display:flex}
+  .cm-fab{right:20px}
+  @media (min-width:860px){
+    .cm-sidebar{display:flex}
+    .cm-bottomnav{display:none}
+    .cm-shell{flex-direction:row!important}
+    .cm-main-col{max-width:640px;margin:0 auto;width:100%}
+    .cm-fab{right:calc(50% - 320px + 20px)}
+  }
+</style>
+</helmet>
+<div class="cm-shell" style="display:flex;flex-direction:column;height:100vh;background:{{pal.bg}};color:{{pal.text}};font-family:system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden">
+
+<div class="cm-sidebar" style="flex-direction:column;width:220px;flex:none;border-right:1px solid {{pal.border}};padding:20px 14px;gap:4px">
+  <div style="display:flex;align-items:center;gap:8px;padding:6px 10px 22px">
+    <div style="width:10px;height:10px;border-radius:3px;background:{{pal.accent}}"></div>
+    <span style="font-weight:700;font-size:17px;letter-spacing:-0.01em">CashMap</span>
+  </div>
+  <sc-if value="{{isTabAdmin}}" hint-placeholder-val="{{false}}"></sc-if>
+  <button onClick="{{goInicio}}" style="{{navBtnStyleInicio}}"><span style="font-size:16px">🏠</span> Inicio</button>
+  <button onClick="{{goDeudas}}" style="{{navBtnStyleDeudas}}"><span style="font-size:16px">🤝</span> Deudas</button>
+  <button onClick="{{goMenus}}" style="{{navBtnStyleMenus}}"><span style="font-size:16px">📁</span> Menús</button>
+  <sc-if value="{{roleIsAdmin}}" hint-placeholder-val="{{true}}">
+    <button onClick="{{goAdmin}}" style="{{navBtnStyleAdmin}}"><span style="font-size:16px">⚙️</span> Admin</button>
+  </sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid {{pal.border}};flex:none;gap:10px">
+    <div style="display:flex;align-items:center;gap:8px;min-width:0">
+      <div style="width:9px;height:9px;border-radius:3px;background:{{pal.accent}};flex:none"></div>
+      <span style="font-weight:700;font-size:16px;white-space:nowrap">CashMap</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex:none">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:{{pal.textMuted}};padding:5px 9px;border-radius:20px;background:{{pal.surfaceAlt}}" title="Estado de sincronización">
+        <div style="width:7px;height:7px;border-radius:50%;background:{{syncColor}};transition:background .2s"></div>
+        <span style="white-space:nowrap">{{syncLabel}}</span>
+      </div>
+      <div style="display:flex;background:{{pal.surfaceAlt}};border-radius:20px;padding:2px">
+        <button onClick="{{setRoleAdmin}}" title="Admin" style="{{roleBtnA}}">A</button>
+        <button onClick="{{setRoleEditor}}" title="Editor" style="{{roleBtnE}}">E</button>
+        <button onClick="{{setRoleViewer}}" title="Viewer" style="{{roleBtnV}}">V</button>
+      </div>
+      <button onClick="{{ toggleTheme }}" style="border:1px solid {{pal.border}};background:{{pal.surface}};color:{{pal.text}};width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex:none">{{themeIcon}}</button>
+      <div style="width:30px;height:30px;border-radius:50%;background:{{pal.accent}};color:{{pal.accentText}};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none">AN</div>
+    </div>
+  </div>
+
+  <div class="cm-main-col" style="flex:1;overflow-y:auto;padding:16px 16px 90px">
+
+    <sc-if value="{{tabIsInicio}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:18px 20px">
+          <div style="font-size:12px;color:{{pal.textMuted}};margin-bottom:10px">Septiembre 2026</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:11px;color:{{pal.textMuted}}">Ingresos</div>
+              <div style="font-size:19px;font-weight:700;color:{{pal.accent}};font-variant-numeric:tabular-nums">{{monthIncomeStr}}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:{{pal.textMuted}}">Gastos</div>
+              <div style="font-size:19px;font-weight:700;color:{{pal.danger}};font-variant-numeric:tabular-nums">{{monthExpenseStr}}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:{{pal.textMuted}}">Balance</div>
+              <div style="font-size:19px;font-weight:700;font-variant-numeric:tabular-nums">{{monthBalanceStr}}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:18px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+          <div style="position:relative;width:118px;height:118px;flex:none">
+            <div style="width:118px;height:118px;border-radius:50%;background:{{donutGradient}}"></div>
+            <div style="position:absolute;top:14px;left:14px;width:90px;height:90px;border-radius:50%;background:{{pal.surface}};display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div style="font-size:10px;color:{{pal.textMuted}}">Gastos</div>
+              <div style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">{{totalExpenseStr}}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:150px">
+            <sc-for list="{{categoryTotals}}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px">
+                <div style="width:8px;height:8px;border-radius:2px;background:{{c.color}};flex:none"></div>
+                <span style="flex:1;color:{{pal.text}}">{{c.emoji}} {{c.name}}</span>
+                <span style="color:{{pal.textMuted}};font-variant-numeric:tabular-nums">{{c.pctStr}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:18px 20px">
+          <div style="font-size:12px;color:{{pal.textMuted}};margin-bottom:12px">Tendencia mensual</div>
+          <div style="display:flex;gap:22px;align-items:flex-end;height:90px">
+            <sc-for list="{{trendMonths}}" as="m" hint-placeholder-count="2">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="display:flex;gap:4px;align-items:flex-end;height:70px">
+                  <div style="width:16px;border-radius:4px 4px 0 0;background:{{pal.accent}};height:{{m.incomeH}}"></div>
+                  <div style="width:16px;border-radius:4px 4px 0 0;background:{{pal.danger}};height:{{m.expenseH}}"></div>
+                </div>
+                <div style="font-size:11px;color:{{pal.textMuted}}">{{m.label}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+          <button onClick="{{setFilterTodos}}" style="{{filterBtnTodos}}">Todos</button>
+          <button onClick="{{setFilterIngreso}}" style="{{filterBtnIngreso}}">Ingresos</button>
+          <button onClick="{{setFilterGasto}}" style="{{filterBtnGasto}}">Gastos</button>
+        </div>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">
+          <sc-for list="{{catFilterChips}}" as="fc" hint-placeholder-count="5">
+            <button onClick="{{ fc.onClick }}" style="{{fc.style}}">{{fc.emoji}} {{fc.name}}</button>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <sc-for list="{{groupedTx}}" as="grp" hint-placeholder-count="2">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:{{pal.textMuted}};margin-bottom:8px;text-transform:capitalize">{{grp.label}}</div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <sc-for list="{{grp.items}}" as="tx" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid {{pal.border}}">
+                    <div style="width:36px;height:36px;border-radius:10px;background:{{tx.catColorSoft}};display:flex;align-items:center;justify-content:center;font-size:16px;flex:none">{{tx.catEmoji}}</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{tx.desc}}</div>
+                      <div style="font-size:11.5px;color:{{pal.textMuted}}">{{tx.catName}} · {{tx.dayStr}}<sc-if value="{{tx.recurring}}" hint-placeholder-val="{{false}}"> · ↻ recurrente</sc-if></div>
+                    </div>
+                    <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:{{tx.amountColor}};flex:none">{{tx.amountStr}}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{tabIsDeudas}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:18px 20px">
+          <div style="font-size:12px;color:{{pal.textMuted}}">Total pendiente por cobrar</div>
+          <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px">{{totalPendingStr}}</div>
+        </div>
+        <sc-for list="{{debtsView}}" as="d" hint-placeholder-count="3">
+          <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:38px;height:38px;border-radius:50%;background:{{d.colorSoft}};color:{{d.color}};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none">{{d.initials}}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14px">{{d.name}}</div>
+                <div style="font-size:11.5px;color:{{pal.textMuted}}">{{d.statusLabel}}</div>
+              </div>
+              <div style="text-align:right;flex:none">
+                <div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{d.pendingStr}}</div>
+                <div style="font-size:11px;color:{{pal.textMuted}}">de {{d.totalStr}}</div>
+              </div>
+            </div>
+            <div style="height:6px;border-radius:3px;background:{{pal.surfaceAlt}};overflow:hidden">
+              <div style="height:100%;border-radius:3px;background:{{d.color}};width:{{d.pctWidth}}"></div>
+            </div>
+            <sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}">
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="number" placeholder="Monto" value="{{d.abonoValue}}" onChange="{{d.onAbonoChange}}" style="flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid {{pal.border}};background:{{pal.bg}};color:{{pal.text}};font-size:13px"></input>
+                <button onClick="{{d.onAbono}}" style="padding:8px 14px;border-radius:9px;border:none;background:{{pal.accent}};color:{{pal.accentText}};font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap">Registrar abono</button>
+              </div>
+            </sc-if>
+            <button onClick="{{d.onToggleHistory}}" style="align-self:flex-start;background:none;border:none;color:{{pal.textMuted}};font-size:11.5px;cursor:pointer;padding:0;text-decoration:underline">{{d.historyLabel}}</button>
+            <sc-if value="{{d.expanded}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;flex-direction:column;gap:4px;padding-top:2px">
+                <sc-for list="{{d.payments}}" as="p" hint-placeholder-count="2">
+                  <div style="display:flex;justify-content:space-between;font-size:12px;color:{{pal.textMuted}}">
+                    <span>{{p.dayStr}}</span>
+                    <span style="font-variant-numeric:tabular-nums">{{p.amountStr}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{tabIsMenus}}" hint-placeholder-val="{{false}}">
+      <sc-if value="{{menuDetailOpen}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <button onClick="{{closeMenu}}" style="align-self:flex-start;background:none;border:none;color:{{pal.textMuted}};font-size:13px;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px">← Volver a menús</button>
+          <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;border-radius:12px;background:{{selMenu.colorSoft}};display:flex;align-items:center;justify-content:center;font-size:20px;flex:none">{{selMenu.icon}}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:16px">{{selMenu.name}}</div>
+                <div style="font-size:11.5px;color:{{pal.textMuted}}">{{selMenu.currency}}</div>
+              </div>
+              <div style="font-size:11px;padding:4px 10px;border-radius:20px;background:{{selMenu.badgeBg}};color:{{selMenu.badgeColor}};font-weight:600;flex:none">{{selMenu.badgeLabel}}</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{selMenu.members}}" as="mem" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:6px;background:{{pal.surfaceAlt}};border-radius:20px;padding:5px 10px 5px 5px;font-size:11.5px">
+                  <div style="width:20px;height:20px;border-radius:50%;background:{{pal.accent}};color:{{pal.accentText}};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">{{mem.initials}}</div>
+                  <span>{{mem.name}}</span>
+                  <span style="color:{{pal.textMuted}}">· {{mem.role}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}">
+            <button style="align-self:flex-start;padding:9px 16px;border-radius:10px;border:none;background:{{pal.accent}};color:{{pal.accentText}};font-size:13px;font-weight:600;cursor:pointer">+ Nueva transacción</button>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{selMenu.txns}}" as="tx" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 6px;border-bottom:1px solid {{pal.border}}">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13.5px;font-weight:500">{{tx.desc}}</div>
+                  <div style="font-size:11.5px;color:{{pal.textMuted}}">{{tx.dayStr}}</div>
+                </div>
+                <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:{{tx.amountColor}}">{{tx.amountStr}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{menuDetailClosed}}" hint-placeholder-val="{{true}}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
+          <sc-for list="{{menusView}}" as="mn" hint-placeholder-count="3">
+            <button onClick="{{mn.onOpen}}" style="text-align:left;background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;font-family:inherit">
+              <div style="width:38px;height:38px;border-radius:11px;background:{{mn.colorSoft}};display:flex;align-items:center;justify-content:center;font-size:18px">{{mn.icon}}</div>
+              <div style="font-size:13.5px;font-weight:600;color:{{pal.text}}">{{mn.name}}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:11px;color:{{pal.textMuted}}">{{mn.currency}}</span>
+                <span style="font-size:10.5px;padding:3px 8px;border-radius:20px;background:{{mn.badgeBg}};color:{{mn.badgeColor}};font-weight:600">{{mn.badgeLabel}}</span>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{tabIsAdmin}}" hint-placeholder-val="{{false}}">
+      <div style="display:flex;flex-direction:column;gap:22px">
+
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">Usuarios</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{usersView}}" as="u" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:12px;padding:10px 14px">
+                <div style="width:32px;height:32px;border-radius:50%;background:{{pal.accent}};color:{{pal.accentText}};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none">{{u.initials}}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:500">{{u.name}}</div>
+                  <div style="font-size:11px;color:{{pal.textMuted}}">{{u.email}}</div>
+                </div>
+                <div style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:{{u.roleBg}};color:{{u.roleColor}};flex:none">{{u.role}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:700">Categorías</div>
+            <button style="font-size:12px;background:none;border:none;color:{{pal.accent}};cursor:pointer;font-weight:600">+ Nueva</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{allCatsView}}" as="c" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:6px;background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:20px;padding:6px 10px">
+                <div style="width:16px;height:16px;border-radius:5px;background:{{c.color}};display:flex;align-items:center;justify-content:center;font-size:9px">{{c.emoji}}</div>
+                <span style="font-size:12px">{{c.name}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">Presupuestos</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{budgetsView}}" as="b" hint-placeholder-count="3">
+              <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:12px;padding:12px 14px">
+                <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px">
+                  <span>{{b.emoji}} {{b.cat}}</span>
+                  <span style="font-variant-numeric:tabular-nums;color:{{pal.textMuted}}">{{b.spentStr}} / {{b.limitStr}}</span>
+                </div>
+                <div style="height:6px;border-radius:3px;background:{{pal.surfaceAlt}};overflow:hidden">
+                  <div style="height:100%;border-radius:3px;background:{{b.barColor}};width:{{b.pctWidth}}"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">Plantillas recurrentes</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{recurringView}}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:12px;padding:12px 14px;opacity:{{r.opacity}}">
+                <div style="width:32px;height:32px;border-radius:9px;background:{{r.colorSoft}};display:flex;align-items:center;justify-content:center;font-size:14px;flex:none">{{r.emoji}}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:500">{{r.desc}}</div>
+                  <div style="font-size:11px;color:{{pal.textMuted}}">{{r.freq}} · próx. {{r.nextStr}}</div>
+                </div>
+                <div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:{{r.amountColor}};flex:none">{{r.amountStr}}</div>
+                <div style="display:flex;gap:4px;flex:none">
+                  <button onClick="{{r.onToggle}}" style="{{r.toggleBtnStyle}}">{{r.toggleLabel}}</button>
+                  <button style="width:28px;height:28px;border-radius:8px;border:1px solid {{pal.border}};background:{{pal.bg}};cursor:pointer;font-size:12px">✎</button>
+                  <button onClick="{{r.onDelete}}" style="width:28px;height:28px;border-radius:8px;border:1px solid {{pal.border}};background:{{pal.bg}};cursor:pointer;font-size:12px;color:{{pal.danger}}">🗑</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">Permisos de menús compartidos</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{sharedMenusView}}" as="sm" hint-placeholder-count="2">
+              <div style="background:{{pal.surface}};border:1px solid {{pal.border}};border-radius:12px;padding:12px 14px">
+                <div style="font-size:13px;font-weight:600;margin-bottom:8px">{{sm.icon}} {{sm.name}}</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <sc-for list="{{sm.members}}" as="mem" hint-placeholder-count="2">
+                    <div style="display:flex;justify-content:space-between;font-size:12px">
+                      <span style="color:{{pal.textMuted}}">{{mem.name}}</span>
+                      <span style="font-weight:600">{{mem.role}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+      </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}">
+    <button onClick="{{openModal}}" class="cm-fab" style="position:fixed;bottom:76px;width:52px;height:52px;border-radius:50%;background:{{pal.accent}};color:{{pal.accentText}};border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;z-index:5">+</button>
+  </sc-if>
+
+  <div class="cm-bottomnav" style="border-top:1px solid {{pal.border}};padding:8px 6px 10px;flex:none;justify-content:space-around">
+    <button onClick="{{goInicio}}" style="{{bottomBtnStyleInicio}}"><div style="font-size:18px">🏠</div><div style="font-size:10.5px">Inicio</div></button>
+    <button onClick="{{goDeudas}}" style="{{bottomBtnStyleDeudas}}"><div style="font-size:18px">🤝</div><div style="font-size:10.5px">Deudas</div></button>
+    <button onClick="{{goMenus}}" style="{{bottomBtnStyleMenus}}"><div style="font-size:18px">📁</div><div style="font-size:10.5px">Menús</div></button>
+    <sc-if value="{{roleIsAdmin}}" hint-placeholder-val="{{true}}">
+      <button onClick="{{goAdmin}}" style="{{bottomBtnStyleAdmin}}"><div style="font-size:18px">⚙️</div><div style="font-size:10.5px">Admin</div></button>
+    </sc-if>
+  </div>
+
+</div>
+
+<sc-if value="{{modalOpen}}" hint-placeholder-val="{{false}}">
+  <div style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20" onClick="{{closeModal}}">
+    <div style="background:{{pal.surface}};color:{{pal.text}};width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px 20px 26px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px" onClick="{{stopProp}}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:15px;font-weight:700">Nueva transacción</div>
+        <button onClick="{{closeModal}}" style="background:none;border:none;font-size:18px;color:{{pal.textMuted}};cursor:pointer">✕</button>
+      </div>
+
+      <div style="display:flex;background:{{pal.surfaceAlt}};border-radius:12px;padding:3px">
+        <button onClick="{{setTxTypeGasto}}" style="{{txTypeBtnGasto}}">Gasto</button>
+        <button onClick="{{setTxTypeIngreso}}" style="{{txTypeBtnIngreso}}">Ingreso</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;color:{{pal.textMuted}}">Categoría</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{txCatOptions}}" as="tc" hint-placeholder-count="4">
+            <button onClick="{{tc.onClick}}" style="{{tc.style}}">{{tc.emoji}} {{tc.name}}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;color:{{pal.textMuted}}">Monto</div>
+        <input type="number" placeholder="0.00" value="{{txAmount}}" onChange="{{onTxAmountChange}}" style="padding:12px 14px;border-radius:12px;border:1px solid {{pal.border}};background:{{pal.bg}};color:{{pal.text}};font-size:16px"></input>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;color:{{pal.textMuted}}">Fecha</div>
+          <input type="date" value="{{txDate}}" onChange="{{onTxDateChange}}" style="padding:12px 14px;border-radius:12px;border:1px solid {{pal.border}};background:{{pal.bg}};color:{{pal.text}};font-size:14px"></input>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;color:{{pal.textMuted}}">Descripción</div>
+        <input type="text" placeholder="ej. Mercado semanal" value="{{txDesc}}" onChange="{{onTxDescChange}}" style="padding:12px 14px;border-radius:12px;border:1px solid {{pal.border}};background:{{pal.bg}};color:{{pal.text}};font-size:14px"></input>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;color:{{pal.textMuted}}">Nota (opcional)</div>
+        <input type="text" placeholder="Agregar nota" value="{{txNote}}" onChange="{{onTxNoteChange}}" style="padding:12px 14px;border-radius:12px;border:1px solid {{pal.border}};background:{{pal.bg}};color:{{pal.text}};font-size:14px"></input>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+        <div style="font-size:13px;font-weight:500">Transacción recurrente</div>
+        <button onClick="{{toggleTxRecurring}}" style="{{recurringToggleStyle}}"><div style="{{recurringKnobStyle}}"></div></button>
+      </div>
+      <sc-if value="{{txRecurring}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;gap:8px">
+          <button onClick="{{setTxFreqSemanal}}" style="{{freqBtnSemanal}}">Semanal</button>
+          <button onClick="{{setTxFreqMensual}}" style="{{freqBtnMensual}}">Mensual</button>
+        </div>
+      </sc-if>
+
+      <button onClick="{{submitTx}}" style="margin-top:6px;padding:14px;border-radius:14px;border:none;background:{{pal.accent}};color:{{pal.accentText}};font-size:14px;font-weight:700;cursor:pointer">Guardar transacción</button>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    theme: 'light',
+    viewRole: 'admin',
+    activeTab: 'inicio',
+    modalOpen: false,
+    filterType: 'todos',
+    filterCat: 'todos',
+    selectedMenuId: null,
+    expandedDebt: null,
+    abonoInputs: {},
+    syncStatus: 'ok',
+    txType: 'gasto',
+    txCatIdx: 0,
+    txAmount: '',
+    txDate: '2026-09-13',
+    txDesc: '',
+    txNote: '',
+    txRecurring: false,
+    txFreq: 'Mensual',
+    transactions: [
+      {id:1,date:'2026-09-12',desc:'Renta septiembre',amount:-450,type:'gasto',cat:'Renta',recurring:true},
+      {id:2,date:'2026-09-10',desc:'Salario quincena',amount:1200,type:'ingreso',cat:'Salario',recurring:true},
+      {id:3,date:'2026-09-09',desc:'Mercado semanal',amount:-85.4,type:'gasto',cat:'Mercado',recurring:false},
+      {id:4,date:'2026-09-08',desc:'Zelle de mamá',amount:100,type:'ingreso',cat:'Zelle',recurring:false},
+      {id:5,date:'2026-09-05',desc:'Leche y pañales',amount:-32.5,type:'gasto',cat:'Leche',recurring:false},
+      {id:6,date:'2026-09-03',desc:'Gasolina',amount:-40,type:'gasto',cat:'Transporte',recurring:false},
+      {id:7,date:'2026-09-01',desc:'Cena aniversario',amount:-65,type:'gasto',cat:'Ocio',recurring:false},
+      {id:8,date:'2026-08-28',desc:'Pago tarjeta de crédito',amount:-150,type:'gasto',cat:'Deuda',recurring:false},
+      {id:9,date:'2026-08-25',desc:'Salario quincena',amount:1200,type:'ingreso',cat:'Salario',recurring:true},
+      {id:10,date:'2026-08-20',desc:'Consulta médica',amount:-60,type:'gasto',cat:'Salud',recurring:false},
+      {id:11,date:'2026-08-15',desc:'Renta agosto',amount:-450,type:'gasto',cat:'Renta',recurring:true},
+      {id:12,date:'2026-08-10',desc:'Extra freelance',amount:300,type:'ingreso',cat:'Extra',recurring:false},
+      {id:13,date:'2026-08-05',desc:'Mercado',amount:-92,type:'gasto',cat:'Mercado',recurring:false},
+    ],
+    debts: [
+      {id:'p1',name:'Luis',color:'#3b9bd1',total:500,paid:160,payments:[{date:'2026-08-20',amount:100},{date:'2026-09-01',amount:60}]},
+      {id:'p2',name:'Ana',color:'#1f9e8a',total:200,paid:200,payments:[{date:'2026-08-10',amount:200}]},
+      {id:'p3',name:'Carlos',color:'#c2559e',total:350,paid:80,payments:[{date:'2026-09-05',amount:80}]},
+    ],
+    recurring: [
+      {id:'r1',desc:'Renta',amount:450,type:'gasto',freq:'Mensual',next:'2026-10-01',active:true,emoji:'🏠',color:'#5b6bd6'},
+      {id:'r2',desc:'Salario',amount:1200,type:'ingreso',freq:'Quincenal',next:'2026-09-25',active:true,emoji:'💼',color:'#2f6f4f'},
+      {id:'r3',desc:'Suscripción streaming',amount:12,type:'gasto',freq:'Mensual',next:'2026-09-20',active:false,emoji:'🎉',color:'#c2559e'},
+      {id:'r4',desc:'Gimnasio',amount:35,type:'gasto',freq:'Mensual',next:'2026-09-18',active:true,emoji:'💊',color:'#2fa39e'},
+    ],
+  };
+
+  gastoCats = [
+    {e:'🏠',n:'Renta',c:'#5b6bd6'},{e:'🛒',n:'Mercado',c:'#1f9e8a'},{e:'💳',n:'Deuda',c:'#d1495b'},
+    {e:'🚗',n:'Transporte',c:'#3b9bd1'},{e:'🍽️',n:'Comida',c:'#e0762e'},{e:'🎉',n:'Ocio',c:'#c2559e'},
+    {e:'🍼',n:'Leche',c:'#d9a62e'},{e:'💊',n:'Salud',c:'#2fa39e'},
+  ];
+  ingresoCats = [
+    {e:'💼',n:'Salario',c:'#2f6f4f'},{e:'💸',n:'Zelle',c:'#7a5fc9'},{e:'🎁',n:'Extra',c:'#3b9bd1'},
+  ];
+  MONTH_ABBR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  MONTH_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  menus = [
+    {id:'zelle',name:'Zelle',icon:'💸',color:'#7a5fc9',currency:'USD',shared:true,
+      members:[{name:'Ana',role:'Editor'},{name:'Luis',role:'Viewer'}],
+      txns:[{date:'2026-09-08',desc:'De mamá',amount:100},{date:'2026-09-02',desc:'Para Luis - gasolina',amount:-40},{date:'2026-08-22',desc:'De Carlos',amount:60}]},
+    {id:'hogar',name:'Hogar',icon:'🏠',color:'#5b6bd6',currency:'USD',shared:true,
+      members:[{name:'Ana',role:'Admin'},{name:'Luis',role:'Editor'},{name:'Carlos',role:'Viewer'}],
+      txns:[{date:'2026-09-12',desc:'Renta septiembre',amount:-450},{date:'2026-09-09',desc:'Mercado semanal',amount:-85.4},{date:'2026-09-01',desc:'Internet',amount:-55}]},
+    {id:'ahorros',name:'Ahorros personales',icon:'🐷',color:'#d9a62e',currency:'USD',shared:false,
+      members:[{name:'Ana',role:'Admin'}],
+      txns:[{date:'2026-09-01',desc:'Aporte mensual',amount:200},{date:'2026-08-01',desc:'Aporte mensual',amount:200}]},
+  ];
+  users = [
+    {name:'Ana',email:'ana@example.com',role:'Admin'},
+    {name:'Luis',email:'luis@example.com',role:'Editor'},
+    {name:'Carlos',email:'carlos@example.com',role:'Viewer'},
+  ];
+  budgets = [
+    {cat:'Renta',emoji:'🏠',color:'#5b6bd6',limit:500,spent:450},
+    {cat:'Mercado',emoji:'🛒',color:'#1f9e8a',limit:300,spent:177},
+    {cat:'Ocio',emoji:'🎉',color:'#c2559e',limit:100,spent:65},
+  ];
+
+  componentDidMount() {
+    this._syncTimer = setInterval(() => {
+      this.setState({syncStatus:'syncing'});
+      setTimeout(() => this.setState({syncStatus:'ok'}), 1500);
+    }, 14000);
+  }
+  componentWillUnmount() { clearInterval(this._syncTimer); }
+
+  getPalette() {
+    const light = {bg:'#f6f7f6',surface:'#ffffff',surfaceAlt:'#eef1ee',text:'#151b17',textMuted:'#68716c',border:'#e2e6e1',accent:'#2f6f4f',accentText:'#ffffff',danger:'#c23b3b'};
+    const dark = {bg:'#0e1310',surface:'#161d19',surfaceAlt:'#1d2521',text:'#eef2ef',textMuted:'#8a9490',border:'#2a332e',accent:'#4fae7f',accentText:'#0e1310',danger:'#e97b7b'};
+    return this.state.theme === 'dark' ? dark : light;
+  }
+  money(n) {
+    const s = Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    return (n < 0 ? '-$' : '$') + s;
+  }
+  dayStr(dateStr) {
+    const [y,m,d] = dateStr.split('-').map(Number);
+    return `${d} ${this.MONTH_ABBR[m-1]}`;
+  }
+  monthKey(dateStr) { return dateStr.slice(0,7); }
+  findCat(name, type) {
+    const list = type === 'ingreso' ? this.ingresoCats : this.gastoCats;
+    return list.find(c => c.n === name) || {e:'💰',n:name,c:'#888888'};
+  }
+  hexToRgba(hex, a) {
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  setTab = (t) => this.setState({activeTab:t});
+  goInicio = () => this.setTab('inicio');
+  goDeudas = () => this.setTab('deudas');
+  goMenus = () => this.setTab('menus');
+  goAdmin = () => this.setTab('admin');
+  setRole = (r) => this.setState(s => ({viewRole:r, activeTab: (r!=='admin' && s.activeTab==='admin') ? 'inicio' : s.activeTab}));
+  setRoleAdmin = () => this.setRole('admin');
+  setRoleEditor = () => this.setRole('editor');
+  setRoleViewer = () => this.setRole('viewer');
+  setFilterTodos = () => this.setFilterType('todos');
+  setFilterIngreso = () => this.setFilterType('ingreso');
+  setFilterGasto = () => this.setFilterType('gasto');
+  setTxTypeGasto = () => this.setTxType('gasto');
+  setTxTypeIngreso = () => this.setTxType('ingreso');
+  setTxFreqSemanal = () => this.setTxFreq('Semanal');
+  setTxFreqMensual = () => this.setTxFreq('Mensual');
+  toggleTheme = () => this.setState(s => ({theme: s.theme==='dark' ? 'light' : 'dark'}));
+  openModal = () => this.setState({modalOpen:true, txType:'gasto', txCatIdx:0, txAmount:'', txDesc:'', txNote:'', txRecurring:false, txDate:'2026-09-13'});
+  closeModal = () => this.setState({modalOpen:false});
+  stopProp = (e) => e.stopPropagation();
+  setTxType = (t) => this.setState({txType:t, txCatIdx:0});
+  setTxCatIdx = (i) => this.setState({txCatIdx:i});
+  onTxAmountChange = (e) => this.setState({txAmount:e.target.value});
+  onTxDateChange = (e) => this.setState({txDate:e.target.value});
+  onTxDescChange = (e) => this.setState({txDesc:e.target.value});
+  onTxNoteChange = (e) => this.setState({txNote:e.target.value});
+  toggleTxRecurring = () => this.setState(s => ({txRecurring: !s.txRecurring}));
+  setTxFreq = (f) => this.setState({txFreq:f});
+  setFilterType = (t) => this.setState({filterType:t, filterCat:'todos'});
+  setFilterCat = (c) => this.setState({filterCat:c});
+  closeMenu = () => this.setState({selectedMenuId:null});
+
+  submitTx = () => {
+    const s = this.state;
+    const cats = s.txType === 'ingreso' ? this.ingresoCats : this.gastoCats;
+    const cat = cats[s.txCatIdx] || cats[0];
+    const amt = parseFloat(s.txAmount) || 0;
+    const signed = s.txType === 'ingreso' ? Math.abs(amt) : -Math.abs(amt);
+    const newTx = {id:Date.now(),date:s.txDate,desc:s.txDesc || cat.n,amount:signed,type:s.txType,cat:cat.n,recurring:s.txRecurring};
+    this.setState({transactions:[newTx, ...s.transactions], modalOpen:false});
+  };
+
+  render_debtsView(pal) {
+    return this.state.debts.map(d => {
+      const pending = d.total - d.paid;
+      const pct = Math.min(100, Math.round((d.paid/d.total)*100));
+      return {
+        id:d.id, name:d.name, initials:d.name.slice(0,2).toUpperCase(), color:d.color, colorSoft:this.hexToRgba(d.color,0.16),
+        pendingStr:this.money(pending), totalStr:this.money(d.total), pctWidth:pct+'%',
+        statusLabel: pending<=0 ? 'Pagado por completo' : `Pendiente · ${pct}% pagado`,
+        abonoValue: this.state.abonoInputs[d.id] || '',
+        onAbonoChange: (e) => this.setState(s => ({abonoInputs:{...s.abonoInputs,[d.id]:e.target.value}})),
+        onAbono: () => {
+          const val = parseFloat(this.state.abonoInputs[d.id]) || 0;
+          if (val<=0) return;
+          this.setState(s => ({
+            debts: s.debts.map(x => x.id===d.id ? {...x, paid: Math.min(x.total, x.paid+val), payments:[...x.payments,{date:'2026-09-13',amount:val}]} : x),
+            abonoInputs: {...s.abonoInputs, [d.id]:''},
+          }));
+        },
+        expanded: this.state.expandedDebt===d.id,
+        historyLabel: this.state.expandedDebt===d.id ? 'Ocultar historial' : 'Ver historial de abonos',
+        onToggleHistory: () => this.setState(s => ({expandedDebt: s.expandedDebt===d.id ? null : d.id})),
+        payments: d.payments.map(p => ({dayStr:this.dayStr(p.date), amountStr:this.money(p.amount)})),
+      };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pal = this.getPalette();
+    const canEdit = s.viewRole !== 'viewer';
+    const roleIsAdmin = s.viewRole === 'admin';
+
+    const navBtn = (active) => `display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:none;background:${active?pal.surfaceAlt:'transparent'};color:${active?pal.text:pal.textMuted};font-size:13.5px;font-weight:${active?600:500};cursor:pointer;text-align:left;font-family:inherit`;
+    const bottomBtn = (active) => `display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;color:${active?pal.accent:pal.textMuted};font-family:inherit;padding:4px 10px`;
+    const roleBtn = (active) => `width:24px;height:24px;border-radius:50%;border:none;font-size:10.5px;font-weight:700;cursor:pointer;background:${active?pal.accent:'transparent'};color:${active?pal.accentText:pal.textMuted}`;
+    const filterBtn = (active) => `padding:7px 14px;border-radius:20px;border:1px solid ${active?pal.accent:pal.border};background:${active?pal.accent:pal.surface};color:${active?pal.accentText:pal.text};font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;flex:none`;
+
+    // transactions
+    const filtered = s.transactions.filter(tx => (s.filterType==='todos'||tx.type===s.filterType) && (s.filterCat==='todos'||tx.cat===s.filterCat));
+    const byMonth = {};
+    filtered.forEach(tx => { const k=this.monthKey(tx.date); (byMonth[k]=byMonth[k]||[]).push(tx); });
+    const groupedTx = Object.keys(byMonth).sort().reverse().map(k => {
+      const [y,m] = k.split('-').map(Number);
+      return { label: `${this.MONTH_FULL[m-1]} ${y}`, items: byMonth[k].sort((a,b)=>b.date.localeCompare(a.date)).map(tx => {
+        const cat = this.findCat(tx.cat, tx.type);
+        return {...tx, catEmoji:cat.e, catName:cat.n, catColorSoft:this.hexToRgba(cat.c,0.15), dayStr:this.dayStr(tx.date), amountStr:this.money(tx.amount), amountColor: tx.amount<0?pal.danger:pal.accent};
+      })};
+    });
+
+    const usedCats = [...new Set(s.transactions.map(t=>t.cat))];
+    const catFilterChips = usedCats.map(name => {
+      const tx0 = s.transactions.find(t=>t.cat===name);
+      const cat = this.findCat(name, tx0.type);
+      const active = s.filterCat===name;
+      return {emoji:cat.e, name:cat.n, onClick:()=>this.setFilterCat(active?'todos':name),
+        style:`padding:6px 12px;border-radius:20px;border:1px solid ${active?cat.c:pal.border};background:${active?this.hexToRgba(cat.c,0.15):pal.surface};color:${pal.text};font-size:12px;cursor:pointer;white-space:nowrap;flex:none`};
+    });
+
+    const sept = s.transactions.filter(t=>t.date.startsWith('2026-09'));
+    const monthIncome = sept.filter(t=>t.amount>0).reduce((a,t)=>a+t.amount,0);
+    const monthExpense = sept.filter(t=>t.amount<0).reduce((a,t)=>a+t.amount,0);
+
+    // donut by category (all gasto)
+    const gastoTx = s.transactions.filter(t=>t.type==='gasto');
+    const totalExpense = gastoTx.reduce((a,t)=>a+Math.abs(t.amount),0);
+    const byCat = {};
+    gastoTx.forEach(t => { byCat[t.cat] = (byCat[t.cat]||0) + Math.abs(t.amount); });
+    let acc = 0;
+    const categoryTotals = Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]).map(name => {
+      const cat = this.findCat(name,'gasto');
+      const pct = byCat[name]/totalExpense*100;
+      const seg = {color:cat.c, emoji:cat.e, name:cat.n, pctStr: Math.round(pct)+'%', from:acc, to:acc+pct};
+      acc += pct;
+      return seg;
+    });
+    const donutGradient = 'conic-gradient(' + categoryTotals.map(c=>`${c.color} ${c.from}% ${c.to}%`).join(',') + ')';
+
+    // monthly trend
+    const monthsSet = [...new Set(s.transactions.map(t=>this.monthKey(t.date)))].sort();
+    const trendRaw = monthsSet.map(k=>{
+      const items = s.transactions.filter(t=>this.monthKey(t.date)===k);
+      const inc = items.filter(t=>t.amount>0).reduce((a,t)=>a+t.amount,0);
+      const exp = Math.abs(items.filter(t=>t.amount<0).reduce((a,t)=>a+t.amount,0));
+      const [y,m] = k.split('-').map(Number);
+      return {label:`${this.MONTH_ABBR[m-1]} ${y}`, inc, exp};
+    });
+    const maxVal = Math.max(1,...trendRaw.map(t=>Math.max(t.inc,t.exp)));
+    const trendMonths = trendRaw.map(t=>({label:t.label, incomeH: Math.round(t.inc/maxVal*70)+'px', expenseH: Math.round(t.exp/maxVal*70)+'px'}));
+
+    // menus
+    const menusView = this.menus.map(mn => ({
+      id:mn.id, name:mn.name, icon:mn.icon, colorSoft:this.hexToRgba(mn.color,0.16), currency:mn.currency,
+      badgeLabel: mn.shared?'Compartido':'Privado', badgeBg: mn.shared?this.hexToRgba(pal.accent,0.15):pal.surfaceAlt, badgeColor: mn.shared?pal.accent:pal.textMuted,
+      onOpen: () => this.setState({selectedMenuId:mn.id}),
+    }));
+    const selMenuRaw = this.menus.find(m=>m.id===s.selectedMenuId);
+    const selMenu = selMenuRaw ? {
+      icon:selMenuRaw.icon, name:selMenuRaw.name, currency:selMenuRaw.currency, colorSoft:this.hexToRgba(selMenuRaw.color,0.18),
+      badgeLabel: selMenuRaw.shared?'Compartido':'Privado', badgeBg: selMenuRaw.shared?this.hexToRgba(pal.accent,0.15):pal.surfaceAlt, badgeColor: selMenuRaw.shared?pal.accent:pal.textMuted,
+      members: selMenuRaw.members.map(m=>({name:m.name, role:m.role, initials:m.name.slice(0,2).toUpperCase()})),
+      txns: selMenuRaw.txns.map(t=>({desc:t.desc, dayStr:this.dayStr(t.date), amountStr:this.money(t.amount), amountColor: t.amount<0?pal.danger:pal.accent})),
+    } : null;
+
+    // debts
+    const debtsView = this.render_debtsView(pal);
+    const totalPending = this.state.debts.reduce((a,d)=>a+(d.total-d.paid),0);
+
+    // admin
+    const roleColors = {Admin:[this.hexToRgba(pal.accent,0.15),pal.accent], Editor:[pal.surfaceAlt,pal.text], Viewer:[pal.surfaceAlt,pal.textMuted]};
+    const usersView = this.users.map(u=>({...u, initials:u.name.slice(0,2).toUpperCase(), roleBg:roleColors[u.role][0], roleColor:roleColors[u.role][1]}));
+    const allCatsView = [...this.gastoCats, ...this.ingresoCats].map(c=>({emoji:c.e,name:c.n,color:c.c}));
+    const budgetsView = this.budgets.map(b=>{
+      const pct = Math.min(100, Math.round(b.spent/b.limit*100));
+      return {cat:b.cat, emoji:b.emoji, spentStr:this.money(b.spent), limitStr:this.money(b.limit), pctWidth:pct+'%', barColor: b.spent>b.limit?pal.danger:pal.accent};
+    });
+    const recurringView = s.recurring.map(r=>({
+      id:r.id, desc:r.desc, emoji:r.emoji, colorSoft:this.hexToRgba(r.color,0.16), freq:r.freq, nextStr:this.dayStr(r.next),
+      amountStr:(r.type==='ingreso'?'+':'-')+this.money(r.amount).replace('-',''), amountColor:r.type==='ingreso'?pal.accent:pal.danger,
+      opacity: r.active?'1':'0.55',
+      toggleLabel: r.active?'Pausar':'Reanudar',
+      toggleBtnStyle:`padding:5px 10px;border-radius:8px;border:1px solid ${pal.border};background:${pal.bg};color:${pal.text};font-size:11px;cursor:pointer`,
+      onToggle: () => this.setState(st=>({recurring: st.recurring.map(x=>x.id===r.id?{...x,active:!x.active}:x)})),
+      onDelete: () => this.setState(st=>({recurring: st.recurring.filter(x=>x.id!==r.id)})),
+    }));
+    const sharedMenusView = this.menus.filter(m=>m.shared).map(m=>({icon:m.icon,name:m.name,members:m.members}));
+
+    const txCats = s.txType==='ingreso' ? this.ingresoCats : this.gastoCats;
+    const txCatOptions = txCats.map((c,i)=>{
+      const active = i===s.txCatIdx;
+      return {emoji:c.e, name:c.n, onClick:()=>this.setTxCatIdx(i),
+        style:`padding:7px 12px;border-radius:20px;border:1px solid ${active?c.c:pal.border};background:${active?this.hexToRgba(c.c,0.15):pal.surface};color:${pal.text};font-size:12.5px;cursor:pointer`};
+    });
+
+    return {
+      pal, canEdit, roleIsAdmin,
+      isTabAdmin: s.activeTab==='admin',
+      tabIsInicio: s.activeTab==='inicio', tabIsDeudas: s.activeTab==='deudas', tabIsMenus: s.activeTab==='menus', tabIsAdmin: s.activeTab==='admin',
+      navBtnStyleInicio: navBtn(s.activeTab==='inicio'), navBtnStyleDeudas: navBtn(s.activeTab==='deudas'), navBtnStyleMenus: navBtn(s.activeTab==='menus'), navBtnStyleAdmin: navBtn(s.activeTab==='admin'),
+      bottomBtnStyleInicio: bottomBtn(s.activeTab==='inicio'), bottomBtnStyleDeudas: bottomBtn(s.activeTab==='deudas'), bottomBtnStyleMenus: bottomBtn(s.activeTab==='menus'), bottomBtnStyleAdmin: bottomBtn(s.activeTab==='admin'),
+      setTab: this.setTab, goInicio: this.goInicio, goDeudas: this.goDeudas, goMenus: this.goMenus, goAdmin: this.goAdmin,
+      syncColor: s.syncStatus==='ok'?pal.accent:(s.syncStatus==='error'?pal.danger:'#c9a44a'),
+      syncLabel: s.syncStatus==='ok'?'Sincronizado':(s.syncStatus==='error'?'Error de sync':'Sincronizando…'),
+      roleBtnA: roleBtn(s.viewRole==='admin'), roleBtnE: roleBtn(s.viewRole==='editor'), roleBtnV: roleBtn(s.viewRole==='viewer'),
+      setRole: this.setRole, setRoleAdmin: this.setRoleAdmin, setRoleEditor: this.setRoleEditor, setRoleViewer: this.setRoleViewer,
+      toggleTheme: this.toggleTheme, themeIcon: s.theme==='dark'?'☀️':'🌙',
+
+      monthIncomeStr: this.money(monthIncome), monthExpenseStr: this.money(monthExpense), monthBalanceStr: this.money(monthIncome+monthExpense),
+      donutGradient, totalExpenseStr: this.money(-totalExpense), categoryTotals,
+      trendMonths,
+      filterBtnTodos: filterBtn(s.filterType==='todos'), filterBtnIngreso: filterBtn(s.filterType==='ingreso'), filterBtnGasto: filterBtn(s.filterType==='gasto'),
+      setFilterType: this.setFilterType, setFilterTodos: this.setFilterTodos, setFilterIngreso: this.setFilterIngreso, setFilterGasto: this.setFilterGasto,
+      catFilterChips, groupedTx,
+
+      totalPendingStr: this.money(totalPending), debtsView,
+
+      menusView, selMenu, menuDetailOpen: !!selMenu, menuDetailClosed: !selMenu, closeMenu: this.closeMenu,
+
+      usersView, allCatsView, budgetsView, recurringView, sharedMenusView,
+
+      modalOpen: s.modalOpen, openModal: this.openModal, closeModal: this.closeModal, stopProp: this.stopProp,
+      txTypeBtnGasto: `flex:1;padding:9px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:${s.txType==='gasto'?pal.surface:'transparent'};color:${pal.text}`,
+      txTypeBtnIngreso: `flex:1;padding:9px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:${s.txType==='ingreso'?pal.surface:'transparent'};color:${pal.text}`,
+      setTxType: this.setTxType, setTxTypeGasto: this.setTxTypeGasto, setTxTypeIngreso: this.setTxTypeIngreso, txCatOptions,
+      txAmount: s.txAmount, onTxAmountChange: this.onTxAmountChange,
+      txDate: s.txDate, onTxDateChange: this.onTxDateChange,
+      txDesc: s.txDesc, onTxDescChange: this.onTxDescChange,
+      txNote: s.txNote, onTxNoteChange: this.onTxNoteChange,
+      txRecurring: s.txRecurring, toggleTxRecurring: this.toggleTxRecurring,
+      recurringToggleStyle: `width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;background:${s.txRecurring?pal.accent:pal.border};padding:3px;display:flex;justify-content:${s.txRecurring?'flex-end':'flex-start'}`,
+      recurringKnobStyle: `width:18px;height:18px;border-radius:50%;background:#fff`,
+      freqBtnSemanal: filterBtn(s.txFreq==='Semanal'), freqBtnMensual: filterBtn(s.txFreq==='Mensual'),
+      setTxFreq: this.setTxFreq, setTxFreqSemanal: this.setTxFreqSemanal, setTxFreqMensual: this.setTxFreqMensual,
+      submitTx: this.submitTx,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

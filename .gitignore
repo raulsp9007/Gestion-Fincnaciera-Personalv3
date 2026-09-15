@@ -1,0 +1,5 @@
+*.json.bak
+cashmap-*.json
+*.xlsx
+*.zip
+.claude/worktrees/
