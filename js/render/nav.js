@@ -26,6 +26,11 @@ function buildNav() {
   _buildBottomNav();
 }
 
+function _hideLocalDeudasTab() {
+  const localEmpty = (loadData().deudas ?? []).length === 0;
+  return localEmpty && getSharedDeudasMenus().length > 0;
+}
+
 function _buildSidebar() {
   const isAdmin   = currentUser?.role === 'admin';
   const allMenus  = getCustomMenus();
@@ -36,9 +41,10 @@ function _buildSidebar() {
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
       <span class="ico">🏠</span> Inicio
     </a>
+    ${_hideLocalDeudasTab() ? '' : `
     <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
       <span class="ico">💳</span> Deudas
-    </a>
+    </a>`}
     ${getSharedDeudasMenus().map(m => `
       <a class="${_currentView === 'sdeudas-' + m.id ? 'active' : ''}"
          onclick="switchView('sdeudas-${m.id}')">
@@ -95,10 +101,11 @@ function _buildBottomNav() {
       <span class="bn-ico">🏠</span>
       <span>Inicio</span>
     </a>
+    ${_hideLocalDeudasTab() ? '' : `
     <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
       <span class="bn-ico">💳</span>
       <span>Deudas</span>
-    </a>
+    </a>`}
     ${sharedDe.map(m => `
       <a class="${_currentView === 'sdeudas-' + m.id ? 'active' : ''}"
          onclick="switchView('sdeudas-${m.id}')">
@@ -119,6 +126,10 @@ function _buildBottomNav() {
 
 // ── Routing ───────────────────────────────────────────────
 function switchView(viewId) {
+  if (viewId === 'deudas' && _hideLocalDeudasTab()) {
+    const first = getSharedDeudasMenus()[0];
+    viewId = first ? 'sdeudas-' + first.id : 'inicio';
+  }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
   if (viewId.startsWith('menu-')) {
