@@ -2,16 +2,6 @@
 
 let _currentView = 'inicio';
 
-// ── Hide-local toggle ─────────────────────────────────────
-function _isHideLocalMenus() {
-  return localStorage.getItem('cashmap_v2_hide_local_menus') === '1';
-}
-
-function toggleHideLocalMenus() {
-  localStorage.setItem('cashmap_v2_hide_local_menus', _isHideLocalMenus() ? '0' : '1');
-  buildNav();
-}
-
 // ── Shared-users secondary line ───────────────────────────
 function _sharedUsersLine(sharedWith) {
   if (!sharedWith?.length) return '';
@@ -32,56 +22,22 @@ function _hideLocalDeudasTab() {
 }
 
 function _buildSidebar() {
-  const isAdmin   = currentUser?.role === 'admin';
-  const allMenus  = getCustomMenus();
-  const hideLocal = _isHideLocalMenus();
-  const menus     = hideLocal ? allMenus.filter(m => m.shared) : allMenus;
+  const isAdmin = currentUser?.role === 'admin';
 
   document.getElementById('sidebar-nav').innerHTML = `
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
       <span class="ico">🏠</span> Inicio
     </a>
     ${_hideLocalDeudasTab() ? '' : `
-    <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
+    <a class="${_currentView === 'deudas' || _currentView.startsWith('sdeudas-') ? 'active' : ''}" onclick="switchView('deudas')">
       <span class="ico">💳</span> Deudas
     </a>`}
-    ${getSharedDeudasMenus().map(m => `
-      <a class="${_currentView === 'sdeudas-' + m.id ? 'active' : ''}"
-         onclick="switchView('sdeudas-${m.id}')">
-        <span class="ico">💳</span>
-        <div style="flex:1;min-width:0">
-          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name)}</div>
-          ${_sharedUsersLine(m.sharedWith)}
-        </div>
-        <span title="Compartido" style="font-size:.6rem;padding:1px 6px;border-radius:99px;background:#22c55e22;color:#22c55e;font-weight:700;flex-shrink:0;line-height:1.6">Sync</span>
-      </a>`).join('')}
-    ${menus.map(m => `
-      <a class="${_currentView === 'menu-' + m.id ? 'active' : ''}"
-         onclick="switchView('menu-${m.id}')">
-        <span class="ico">${esc(m.icon ?? '📋')}</span>
-        <div style="flex:1;min-width:0">
-          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name)}</div>
-          ${m.shared ? _sharedUsersLine(m.sharedWith) : ''}
-        </div>
-        ${m.shared ? `<span title="Compartido" style="font-size:.6rem;padding:1px 6px;border-radius:99px;background:#22c55e22;color:#22c55e;font-weight:700;flex-shrink:0;line-height:1.6">Sync</span>` : ''}
-        ${isAdmin ? `<span onclick="event.stopPropagation();confirmDeleteMenu(${m.id})"
-                          title="Eliminar menú"
-                          style="flex-shrink:0;padding:1px 5px;border-radius:5px;opacity:0;font-size:.75rem;color:var(--red);line-height:1;transition:.15s"
-                          onmouseenter="this.style.opacity='1'"
-                          onmouseleave="this.style.opacity='0'">🗑️</span>` : ''}
-      </a>`).join('')}
-    ${isAdmin || currentUser?.role === 'editor' ? `
-    <a onclick="openNewMenuModal()">
-      <span class="ico">➕</span> Nuevo menú
-    </a>` : ''}
+    <a class="${_currentView === 'menus' || _currentView.startsWith('menu-') ? 'active' : ''}" onclick="switchView('menus')">
+      <span class="ico">📁</span> Menús
+    </a>
     ${isAdmin ? `
     <a onclick="openAdminPanel()">
       <span class="ico">⚙️</span> Admin
-    </a>` : ''}
-    ${allMenus.some(m => !m.shared) ? `
-    <a onclick="toggleHideLocalMenus()" style="font-size:.78rem;color:var(--text2)">
-      <span class="ico">${hideLocal ? '👁️' : '🙈'}</span>
-      ${hideLocal ? 'Mostrar menús locales' : 'Ocultar menús locales'}
     </a>` : ''}
     ${_buildGasIdentityNav()}
     <a class="nav-logout" onclick="logout()">
@@ -91,10 +47,7 @@ function _buildSidebar() {
 }
 
 function _buildBottomNav() {
-  const initial   = (currentUser?.name ?? '?').charAt(0).toUpperCase();
-  const allMenus  = getCustomMenus();
-  const sharedDe  = getSharedDeudasMenus();
-  const menus     = _isHideLocalMenus() ? allMenus.filter(m => m.shared) : allMenus;
+  const initial = (currentUser?.name ?? '?').charAt(0).toUpperCase();
 
   document.getElementById('bottom-nav').innerHTML = `
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
@@ -102,25 +55,57 @@ function _buildBottomNav() {
       <span>Inicio</span>
     </a>
     ${_hideLocalDeudasTab() ? '' : `
-    <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
-      <span class="bn-ico">💳</span>
+    <a class="${_currentView === 'deudas' || _currentView.startsWith('sdeudas-') ? 'active' : ''}" onclick="switchView('deudas')">
+      <span class="bn-ico">🤝</span>
       <span>Deudas</span>
     </a>`}
-    ${sharedDe.map(m => `
-      <a class="${_currentView === 'sdeudas-' + m.id ? 'active' : ''}"
-         onclick="switchView('sdeudas-${m.id}')">
-        <span class="bn-ico">💳</span>
-        <span>${esc(m.name.slice(0, 8))}</span>
-      </a>`).join('')}
-    ${menus.map(m => `
-      <a class="${_currentView === 'menu-' + m.id ? 'active' : ''}"
-         onclick="switchView('menu-${m.id}')">
-        <span class="bn-ico">${esc(m.icon ?? '📋')}</span>
-        <span>${esc(m.name.slice(0, 8))}</span>
-      </a>`).join('')}
-    <a onclick="openUserMenu()">
-      <span class="bn-ico bn-avatar">${initial}</span>
+    <a class="${_currentView === 'menus' || _currentView.startsWith('menu-') ? 'active' : ''}" onclick="switchView('menus')">
+      <span class="bn-ico">📁</span>
+      <span>Menús</span>
     </a>
+    <a onclick="openUserMenu()">
+      <span class="bn-ico">⋯</span>
+      <span>Más</span>
+    </a>
+  `;
+}
+
+// ── Vista "Menús" — grid de todos los menús personalizados ─
+function _renderMenusView() {
+  const el = document.getElementById('view-menus');
+  if (!el) return;
+  const isAdmin  = currentUser?.role === 'admin';
+  const allMenus = getCustomMenus();
+
+  el.innerHTML = `
+    <div class="menu-header">
+      <h2 style="font-size:1.1rem;font-weight:700">📁 Menús</h2>
+      ${isAdmin || currentUser?.role === 'editor' ? `<button class="btn btn-primary btn-sm" onclick="openNewMenuModal()">➕ Nuevo menú</button>` : ''}
+    </div>
+    ${allMenus.length ? `<div class="menus-grid">
+      ${allMenus.map(m => `
+        <button class="menu-card" onclick="switchView('menu-${m.id}')">
+          <div class="menu-card-icon">${esc(m.icon ?? '📋')}</div>
+          <div class="menu-card-name">${esc(m.name)}</div>
+          <div class="menu-card-foot">
+            <span class="menu-card-curr">${esc(m.currency ?? '')}</span>
+            ${m.shared ? `<span class="menu-card-badge">Compartido</span>` : ''}
+          </div>
+        </button>`).join('')}
+    </div>` : `<div class="empty">Sin menús aún.<br>Crea uno con "Nuevo menú".</div>`}
+  `;
+}
+
+// ── Selector de fuente dentro de la vista Deudas ───────────
+function _renderDeudasSourceTabs() {
+  const el = document.getElementById('deudas-source-tabs');
+  if (!el) return;
+  const shared = getSharedDeudasMenus();
+  if (!shared.length) { el.innerHTML = ''; return; }
+  const isLocal = !_currentView.startsWith('sdeudas-');
+  el.innerHTML = `
+    ${_hideLocalDeudasTab() ? '' : `<button class="month-tab ${isLocal ? 'active' : ''}" onclick="switchView('deudas')">Local</button>`}
+    ${shared.map(m => `<button class="month-tab ${_currentView === 'sdeudas-' + m.id ? 'active' : ''}" onclick="switchView('sdeudas-${m.id}')">${esc(m.name)}</button>`).join('')}
   `;
 }
 
@@ -138,6 +123,9 @@ function switchView(viewId) {
   } else if (viewId.startsWith('sdeudas-')) {
     document.getElementById('view-deudas').classList.add('active');
     renderDeudas(parseInt(viewId.slice(8), 10));
+  } else if (viewId === 'menus') {
+    document.getElementById('view-menus')?.classList.add('active');
+    _renderMenusView();
   } else {
     document.getElementById('view-' + viewId)?.classList.add('active');
     if (viewId === 'inicio')  renderInicio();
@@ -146,6 +134,7 @@ function switchView(viewId) {
 
   _currentView = viewId;
   document.getElementById('topbar-title').textContent = _viewTitle(viewId);
+  if (viewId === 'deudas' || viewId.startsWith('sdeudas-')) _renderDeudasSourceTabs();
   buildNav();
 }
 
@@ -167,7 +156,8 @@ function _buildGasIdentityNav() {
 
 function _viewTitle(viewId) {
   if (viewId === 'inicio')  return 'Inicio';
-  if (viewId === 'deudas')  return '💳 Deudas';
+  if (viewId === 'menus')   return '📁 Menús';
+  if (viewId === 'deudas')  return '🤝 Deudas';
   if (viewId.startsWith('sdeudas-')) {
     const m = getSharedDeudasMenu(parseInt(viewId.slice(8), 10));
     return m ? `💳 ${m.name}` : 'Deudas';

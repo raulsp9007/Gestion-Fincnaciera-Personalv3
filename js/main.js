@@ -3,25 +3,6 @@
 // ── Globals ───────────────────────────────────────────────
 let currentUser = null;
 
-// ── Tema (light/dark) ─────────────────────────────────────
-function initAppTheme() {
-  _applyTheme(localStorage.getItem('cashmap_v2_theme') || 'dark');
-}
-
-function toggleAppTheme() {
-  const next = document.body.dataset.theme === 'light' ? 'dark' : 'light';
-  localStorage.setItem('cashmap_v2_theme', next);
-  _applyTheme(next);
-}
-
-function _applyTheme(theme) {
-  document.body.dataset.theme = theme;
-  const btn = document.getElementById('btn-theme');
-  if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', theme === 'light' ? '#f6f7f6' : '#0e1310');
-}
-
 // ── Utilidad ─────────────────────────────────────────────
 async function hardRefreshApp() {
   try {
@@ -507,7 +488,6 @@ async function startApp() {
       affectedMenuIds.forEach(id => onMenuSaved(id).catch(() => {}));
     }
   } catch (e) { console.error('migrateTimePadding:', e); }
-  initAppTheme();
   buildNav();
   switchView('inicio');
 

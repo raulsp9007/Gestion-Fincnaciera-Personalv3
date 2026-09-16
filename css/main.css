@@ -1,26 +1,18 @@
 /* ============================================================
    CashMap v3 — main.css
-   Ink Navy — dirección visual v3 (reemplaza el verde de v2)
+   Papel cálido — dirección visual v3 (reemplaza Ink Navy)
 ============================================================ */
 
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0c1220;--bg2:#131b2e;--bg3:#1a2338;
-  --acc:#5b8cff;--acc2:#3f6fe0;--green:#4fae7f;--red:#ff8a8a;--yellow:#e0b34f;
-  --text:#e9edf7;--text2:#8b93ab;--border:#232d45;
-  --accent-text:#0c1220;
-  --radius-card:16px;--radius-row:12px;--radius-modal:20px;
+  --bg:#f7f4ee;--bg2:#ffffff;--bg3:#efeade;
+  --acc:#b45830;--acc2:#8f4526;--green:#3f7a52;--red:#b1433a;--yellow:#c9a44a;
+  --text:#211d16;--text2:#7a7364;--border:#e3ddcc;
+  --accent-text:#ffffff;
+  --radius-card:18px;--radius-row:12px;--radius-modal:20px;
   --sidebar:220px;
 }
-body[data-theme="light"]{
-  --bg:#f5f6fa;--bg2:#ffffff;--bg3:#eceff6;
-  --acc:#3f6fe0;--acc2:#2f56b8;--green:#2f8f5f;--red:#c23b3b;--yellow:#c9a44a;
-  --text:#151a2c;--text2:#5c6478;--border:#dde1ec;
-  --accent-text:#ffffff;
-}
-body{font-family:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden;transition:background .15s,color .15s}
-#btn-theme{background:none;border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
-#btn-theme:hover{background:var(--bg3);color:var(--text)}
+body{font-family:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden}
 
 /* ── SIDEBAR ─────────────────────────────────────────────── */
 #sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow:hidden}
@@ -141,6 +133,8 @@ tr:hover td{background:rgba(255,255,255,.03)}
 .attach-badge{font-size:.68rem;padding:1px 7px;border-radius:99px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);flex-shrink:0;white-space:nowrap}
 
 /* ── FILTERS ─────────────────────────────────────────────── */
+.hg-scrollx{scrollbar-width:none}
+.hg-scrollx::-webkit-scrollbar{display:none}
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .filter-toggle-btn{display:none}
 .filters input,.filters select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.83rem;outline:none}
@@ -268,6 +262,16 @@ body.is-admin #tx-cat-cfg-btn{display:inline-flex}
 /* ── BOTTOM NAV (mobile only) ────────────────────────────── */
 #bottom-nav{display:none}
 #fab{display:none}
+
+/* ── MENÚS GRID ──────────────────────────────────────────── */
+.menus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.menu-card{text-align:left;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-card);padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;font-family:inherit;transition:border-color .15s}
+.menu-card:hover{border-color:var(--acc)}
+.menu-card-icon{width:38px;height:38px;border-radius:11px;background:var(--acc)22;display:flex;align-items:center;justify-content:center;font-size:18px}
+.menu-card-name{font-size:.85rem;font-weight:600;color:var(--text)}
+.menu-card-foot{display:flex;align-items:center;justify-content:space-between}
+.menu-card-curr{font-size:.68rem;color:var(--text2)}
+.menu-card-badge{font-size:.63rem;padding:2px 8px;border-radius:20px;background:var(--acc)22;color:var(--acc);font-weight:600}
 
 /* ── CUSTOM MENU HEADER ──────────────────────────────────── */
 .menu-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}

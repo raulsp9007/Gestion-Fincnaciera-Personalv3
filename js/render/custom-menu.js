@@ -183,30 +183,35 @@ function renderCustomMenu(menuId) {
   const el = document.getElementById('view-custom');
   const _focusInfo = _captureFocusWithin(el);
   el.innerHTML = `
-    <div class="menu-header">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:1.6rem">${esc(menu.icon ?? '📋')}</span>
-        <h2 style="font-size:1.1rem;font-weight:700">${esc(menu.name)}</h2>
-        ${menu.shared ? (() => {
-          const others = (menu.sharedWith ?? []).filter(u => u.name !== currentUser?.name);
-          const names  = others.length ? others.map(u => u.name).join(', ') : 'solo tú';
-          return `<span title="Compartido con: ${esc(names)}" style="font-size:.68rem;padding:2px 8px;border-radius:99px;background:var(--acc)22;color:var(--acc);font-weight:600;cursor:default">Compartido · ${esc(names)}</span>`;
-        })() : ''}
+    <div class="menu-header" style="flex-direction:column;align-items:stretch;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(91,140,255,.16);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none">${esc(menu.icon ?? '📋')}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:1.05rem">${esc(menu.name)}</span>
+            ${menu.shared ? `<span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--acc)22;color:var(--acc);font-weight:600">Compartido</span>` : ''}
+          </div>
+          <div style="font-size:.72rem;color:var(--text2)">${esc(curr)}${menu.shared ? (() => {
+            const others = (menu.sharedWith ?? []).filter(u => u.name !== currentUser?.name);
+            return others.length ? ' · con ' + others.map(u => `${esc(u.name)} (${esc(u.role)})`).join(', ') : ' · solo tú';
+          })() : ''}</div>
+        </div>
+        ${menu.shared ? `<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex:none" title="Sincronizado"></div>` : ''}
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div class="hg-scrollx" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
         ${_canWriteMenuTxs(menu) ? `
-          <button class="btn btn-ghost btn-sm" onclick="openMenuImportPicker(${menuId})">📥 Importar</button>
+          <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openMenuImportPicker(${menuId})">⬆ Importar</button>
         ` : ''}
         ${_canEditMenu(menu) ? `
           ${!menu.shared ? `
-            <button class="btn btn-ghost btn-sm" onclick="openEditMenuModal(${menuId})">✏️ Editar</button>
-            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="confirmDeleteMenu(${menuId})">🗑️</button>
+            <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openEditMenuModal(${menuId})">✏️ Editar</button>
+            <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap;color:var(--red)" onclick="confirmDeleteMenu(${menuId})">🗑️</button>
           ` : ''}
-          <button class="btn btn-ghost btn-sm" onclick="openShareModal(${menuId})">🔗 ${menu.shared ? 'Acceso' : 'Compartir'}</button>
+          <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openShareModal(${menuId})">🔑 ${menu.shared ? 'Acceso' : 'Compartir'}</button>
         ` : ''}
-        <button class="btn btn-ghost btn-sm" onclick="generateMenuReport(${menuId})">📊 Reporte</button>
-        ${menu.shared ? `<button class="btn btn-ghost btn-sm" onclick="openMenuHistory(${menuId})">📋 Historial</button>` : ''}
-        ${menu.shared ? `<button class="btn btn-ghost btn-sm" title="Fuerza push+pull completo de todos los registros" onclick="forceFullMenuSync(${menuId})">↺ Sync</button>` : ''}
+        <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="generateMenuReport(${menuId})">📄 Reporte</button>
+        ${menu.shared ? `<button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openMenuHistory(${menuId})">🕓 Historial</button>` : ''}
+        ${menu.shared ? `<button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" title="Fuerza push+pull completo de todos los registros" onclick="forceFullMenuSync(${menuId})">↺ Sync</button>` : ''}
       </div>
     </div>
     ${_menuMonthTabs(menuId, ym)}
