@@ -239,6 +239,90 @@ function deleteMenuTx(menuId, txId) {
   saveData();
 }
 
+// ── Import backup v2 (export completo o archivo de autoguardado) ──
+// Conserva todos los campos (time, recurring, entryType, vehicleInfo...) y es
+// idempotente: importar dos veces el mismo archivo no duplica registros.
+const _SHARE_KEYS = ['shared', 'sheetName', 'myRole', 'sharedWith', 'lastPulledAt'];
+
+function _isMenuFile(raw) {
+  return typeof raw.menuName === 'string' && Array.isArray(raw.data);
+}
+
+// Deudas del backup: las de menús compartidos (Deudas1) mandan sobre las locales.
+function _deudasFromBackup(raw) {
+  const shared = (raw.sharedDeudasMenus ?? []).flatMap(s => s.data ?? []);
+  return shared.length ? shared : (raw.deudas ?? []);
+}
+
+function _recKey(r) {
+  return [r.date, r.time, r.amount, r.totalCost, r.description, r.persona, r.entryType, r.liters].join('|');
+}
+
+// Agrega a `target` los registros de `src` que no existan ya; devuelve cuántos.
+function _mergeRecords(target, src) {
+  const seen = new Set(target.map(_recKey));
+  const ids  = new Set(target.map(r => r.id));
+  let nextId = target.length ? Math.max(...target.map(r => Number(r.id) || 0)) + 1 : 1;
+  let added = 0;
+  for (const rec of src) {
+    if (seen.has(_recKey(rec))) continue;
+    const copy = structuredClone(rec);
+    if (copy.id == null || ids.has(copy.id)) copy.id = nextId++;
+    ids.add(copy.id);
+    target.push(copy);
+    added++;
+  }
+  return added;
+}
+
+function importV2Data(raw) {
+  const d = loadData();
+  const stats = { txs: 0, menus: 0, menuTxs: 0, deudas: 0 };
+
+  stats.txs = _mergeRecords(d.inicio, raw.inicio ?? []);
+
+  for (const type of ['inc', 'exp']) {
+    d.globalCats[type] ??= {};
+    for (const [key, cat] of Object.entries(raw.globalCats?.[type] ?? {})) {
+      if (!d.globalCats[type][key]) d.globalCats[type][key] = cat;
+    }
+  }
+  for (const [key, val] of Object.entries(raw.budgets ?? {})) {
+    if (!d.budgets[key]) d.budgets[key] = val;
+  }
+  for (const [key, val] of Object.entries(raw.config ?? {})) {
+    if (d.config[key] == null) d.config[key] = val;
+  }
+
+  const srcMenus = _isMenuFile(raw)
+    ? [{ name: raw.menuName, icon: raw.icon, currency: raw.currency, data: raw.data }]
+    : (raw.customMenus ?? []);
+  for (const src of srcMenus) {
+    const existing = d.customMenus.find(m => m.name === src.name);
+    if (existing) {
+      stats.menuTxs += _mergeRecords(existing.data, src.data ?? []);
+      continue;
+    }
+    const menu = structuredClone(src);
+    for (const k of _SHARE_KEYS) delete menu[k];
+    menu.id       = d.customMenus.some(m => m.id === menu.id) || menu.id == null ? genId() : menu.id;
+    menu.icon    ??= '📋';
+    menu.currency ??= '€';
+    menu.data   ??= [];
+    menu.nextDataId ??= menu.data.length ? Math.max(...menu.data.map(t => Number(t.id) || 0)) + 1 : 1;
+    d.customMenus.push(menu);
+    d.navOrder.push('menu-' + menu.id);
+    stats.menus++;
+    stats.menuTxs += menu.data.length;
+  }
+
+  d.deudas ??= [];
+  stats.deudas = _mergeRecords(d.deudas, _deudasFromBackup(raw));
+
+  saveData();
+  return stats;
+}
+
 // ── Import from v1 / backup JSON ──────────────────────────
 function importV1Data(raw) {
   const isV1 = Array.isArray(raw.txs);

@@ -1,7 +1,7 @@
 'use strict';
 
 // ── Versión y caché — 100% local, sin cuenta ni servidor ──
-const APP_VERSION  = 'v3-offline-1';
+const APP_VERSION  = 'v3-offline-2';
 const CACHE_KEY    = 'cashmap_v2_data';
 
 // ── Datos por defecto ─────────────────────────────────────

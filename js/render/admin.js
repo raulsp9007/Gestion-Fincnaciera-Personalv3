@@ -137,9 +137,10 @@ function handleImportFile(input) {
     catch { showToast('JSON inválido', 'var(--red)'); return; }
 
     const txCount     = (raw.txs ?? raw.inicio ?? []).length;
-    const menuCount   = (raw.customMenus ?? []).length;
+    const menuFile    = _isMenuFile(raw);
+    const menuCount   = menuFile ? 1 : (raw.customMenus ?? []).length;
     const homeTxCount = (raw.homeTxs ?? []).length;
-    const deudaCount  = (raw.deudas ?? []).length;
+    const deudaCount  = _deudasFromBackup(raw).length;
 
     let msg = '¿Importar datos?';
     const lines = [];
@@ -152,12 +153,12 @@ function handleImportFile(input) {
 
     showConfirm(msg, () => {
       try {
-        const stats = importV1Data(raw);
+        const stats = Array.isArray(raw.txs) ? importV1Data(raw) : importV2Data(raw);
         buildNav();
         renderInicio();
         const toastParts = [];
         if (stats.txs)    toastParts.push(`${stats.txs} mov`);
-        if (stats.menus)  toastParts.push(`${stats.menus} menús (${stats.menuTxs} reg)`);
+        if (stats.menus || stats.menuTxs) toastParts.push(`${stats.menus} menús (${stats.menuTxs} reg)`);
         if (stats.deudas) toastParts.push(`${stats.deudas} deudas`);
         showToast('Importado: ' + toastParts.join(', '));
       } catch (err) {
