@@ -20,106 +20,26 @@
 </head>
 <body>
 
-<!-- ── SETUP SCREEN (solo la primera vez — crear admin) ──── -->
-<div id="setup-screen" class="hidden">
-  <div class="setup-box">
-    <div class="brand-mark">C</div>
-    <h2>Bienvenido a CashMap</h2>
-    <p class="setup-sub">Primera configuración — crea tu cuenta de administrador</p>
-    <div class="form-row">
-      <label>Nombre</label>
-      <input id="setup-name" type="text" placeholder="Tu nombre" autocomplete="off">
-    </div>
-    <div class="form-row">
-      <label>PIN (4–8 dígitos)</label>
-      <input id="setup-pin" type="password" inputmode="numeric" placeholder="••••" maxlength="8" autocomplete="new-password">
-    </div>
-    <div class="form-row">
-      <label>Confirmar PIN</label>
-      <input id="setup-pin2" type="password" inputmode="numeric" placeholder="••••" maxlength="8" autocomplete="new-password">
-    </div>
-    <div class="login-error" id="setup-error"></div>
-    <button class="btn btn-primary" onclick="submitSetup()">Crear cuenta</button>
-
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
-      <p style="font-size:.8rem;color:var(--text2);margin-bottom:10px">¿Alguien ya configuró el servidor?</p>
-      <button class="btn btn-ghost" onclick="showJoinPanel()" style="width:100%;font-size:.82rem">
-        🔗 Unirse con URL del servidor
-      </button>
-    </div>
-
-    <div id="join-panel" style="display:none;margin-top:14px">
-      <div class="form-row">
-        <label>URL del servidor (GAS)</label>
-        <input id="join-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
-      </div>
-      <div class="login-error" id="join-error"></div>
-      <button class="btn btn-primary" onclick="submitJoin()" style="width:100%">Descargar usuarios y entrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── LOGIN SCREEN ──────────────────────────────────────── -->
-<div id="login-screen" class="hidden">
-  <div class="login-box">
-    <div class="brand-mark">C</div>
-    <h2>CashMap</h2>
-    <p>Finanzas familiares, en un solo lugar</p>
-    <div class="form-row">
-      <label>Usuario</label>
-      <select id="login-user-sel"></select>
-    </div>
-    <div class="form-row">
-      <label>PIN</label>
-      <input id="login-pin" type="password" inputmode="numeric" placeholder="••••" maxlength="8" autocomplete="current-password">
-    </div>
-    <div class="login-error" id="login-error"></div>
-    <button class="btn btn-primary" onclick="submitLogin()">Iniciar sesión</button>
-
-    <div id="login-version-info" style="margin-top:14px;font-size:.68rem;color:var(--text2);text-align:center;line-height:1.6"></div>
-
-    <div class="login-divider">SINCRONIZACIÓN</div>
-    <div style="text-align:center">
-      <button class="btn btn-ghost" onclick="showJoinPanel('login')" style="width:100%;font-size:.82rem">
-        🔗 Sincronizar usuarios con servidor
-      </button>
-    </div>
-    <div id="join-panel-login" style="display:none;margin-top:14px">
-      <div class="form-row">
-        <label>URL del servidor (GAS)</label>
-        <input id="join-url-login" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
-      </div>
-      <div class="login-error" id="join-error-login"></div>
-      <button class="btn btn-primary" onclick="submitJoin('login')" style="width:100%">Descargar usuarios</button>
-    </div>
-  </div>
-</div>
-
 <!-- ── OFFLINE BAR ───────────────────────────────────────── -->
 <div id="offline-bar">
-  📡 Sin conexión — cambios guardados localmente
+  📡 Sin conexión — la app funciona 100% local
   <button class="ob-retry" onclick="window.location.reload()">Reintentar</button>
 </div>
 
-<!-- ── APP SHELL (oculto hasta login) ───────────────────── -->
-<div id="app" class="hidden">
+<!-- ── APP SHELL ─────────────────────────────────────────── -->
+<div id="app">
 
   <!-- SIDEBAR (desktop) -->
   <div id="sidebar">
     <div class="brand">
       <h1>💰 CashMap</h1>
-      <p id="sidebar-user-name">—</p>
+      <p>100% local, sin cuenta</p>
     </div>
     <nav id="sidebar-nav">
       <!-- generado por nav.js -->
     </nav>
     <div id="sync-area">
-      <div id="sync-badge" class="local">
-        <div class="dot"></div>
-        <span class="lbl" id="sync-lbl">Local</span>
-      </div>
-      <button id="btn-sync-now" onclick="forceSyncNow()">🔄 Sincronizar ahora</button>
-      <button id="btn-install" style="display:none;margin-top:6px;width:100%;padding:7px;border:1px solid var(--border);background:transparent;color:var(--acc);border-radius:6px;font-size:.72rem;cursor:pointer;transition:.15s" onclick="installPwa()">📲 Instalar app</button>
+      <button id="btn-install" style="display:none;width:100%;padding:7px;border:1px solid var(--border);background:transparent;color:var(--acc);border-radius:6px;font-size:.72rem;cursor:pointer;transition:.15s" onclick="installPwa()">📲 Instalar app</button>
     </div>
   </div>
 
@@ -131,14 +51,11 @@
       <h2 id="topbar-title">Inicio</h2>
       <div class="top-actions">
         <button class="btn btn-ghost btn-sm" id="btn-new" onclick="openNewRecordModal()">+ Nuevo</button>
-        <button class="btn btn-ghost btn-sm" id="btn-admin" onclick="openAdminPanel()" style="display:none">⚙️ Admin</button>
+        <button class="btn btn-ghost btn-sm" onclick="openAdminPanel()">⚙️ Admin</button>
         <button id="btn-search-global" onclick="openGlobalSearch()" title="Buscar (Ctrl+K)"
               style="background:none;border:none;color:var(--text2);cursor:pointer;padding:5px 7px;font-size:1.05rem;line-height:1;border-radius:8px;transition:.15s;flex-shrink:0"
               onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color='var(--text2)'">🔍</button>
-        <div id="user-badge" onclick="openUserMenu()">
-          <span id="topbar-user-name">—</span>
-          <span class="role-chip" id="topbar-role-chip"></span>
-        </div>
+        <div id="user-badge" onclick="openUserMenu()">⋯</div>
       </div>
     </div>
 
@@ -158,7 +75,6 @@
 
       <!-- VISTA: Deudas -->
       <div id="view-deudas" class="view">
-        <div id="deudas-source-tabs" class="month-tabs" style="margin-bottom:14px"></div>
         <button class="filter-toggle-btn" onclick="toggleDeudasFilters()">
           🔍 Filtrar / buscar
           <span id="deudas-filter-arrow" style="margin-left:auto">▼</span>
@@ -230,13 +146,12 @@
   <div id="admin-sheet-bd" onclick="closeAdminSheet()"></div>
   <div id="admin-sheet-panel">
     <div id="admin-sheet-header">
-      <span id="admin-sheet-name"></span>
-      <span class="role-chip" id="admin-sheet-role"></span>
+      <span>💰 CashMap</span>
     </div>
-    <button class="admin-sheet-btn" data-new-menu onclick="closeAdminSheet();openNewMenuModal()">
+    <button class="admin-sheet-btn" onclick="closeAdminSheet();openNewMenuModal()">
       <span>➕</span><span>Nuevo menú</span>
     </button>
-    <button class="admin-sheet-btn" data-admin onclick="closeAdminSheet();openAdminPanel()">
+    <button class="admin-sheet-btn" onclick="closeAdminSheet();openAdminPanel()">
       <span>⚙️</span><span>Panel Admin</span>
     </button>
     <button class="admin-sheet-btn" onclick="closeAdminSheet();openCatsModal()">
@@ -247,9 +162,6 @@
     </button>
     <button class="admin-sheet-btn" onclick="closeAdminSheet();openGlobalSearch()">
       <span>🔍</span><span>Buscar</span>
-    </button>
-    <button class="admin-sheet-btn admin-sheet-logout" onclick="closeAdminSheet();logout()">
-      <span>🚪</span><span>Cerrar sesión</span>
     </button>
   </div>
 </div>
@@ -397,8 +309,7 @@
 
     <!-- Tab bar -->
     <div id="admin-tab-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:10px">
-      <button class="admin-tab active" onclick="switchAdminTab('usuarios')">👥 Usuarios</button>
-      <button class="admin-tab"        onclick="switchAdminTab('categorias')">🏷️ Categorías</button>
+      <button class="admin-tab active" onclick="switchAdminTab('categorias')">🏷️ Categorías</button>
       <button class="admin-tab"        onclick="switchAdminTab('autosave')">💾 Autoguardado</button>
       <button class="admin-tab"        onclick="switchAdminTab('datos')">📦 Export / Import</button>
       <button class="admin-tab"        onclick="switchAdminTab('menus')">📋 Menús</button>
@@ -409,16 +320,8 @@
     <!-- Contenido scrollable -->
     <div style="overflow-y:auto;flex:1;padding-right:4px">
 
-      <!-- TAB: Usuarios -->
-      <div id="admin-tab-usuarios" class="admin-tab-panel">
-        <div class="section-title" style="margin-top:0">Usuarios</div>
-        <div id="admin-users-list"></div>
-        <button class="btn btn-primary btn-sm" style="margin-top:10px"
-                onclick="openCreateUserForm()">+ Nuevo usuario</button>
-      </div>
-
       <!-- TAB: Categorías -->
-      <div id="admin-tab-categorias" class="admin-tab-panel" style="display:none">
+      <div id="admin-tab-categorias" class="admin-tab-panel">
         <div class="section-title" style="margin-top:0">Categorías</div>
         <button class="btn btn-ghost btn-sm" onclick="closeAdminPanel();openCatsModal()">🏷️ Gestionar categorías (Ingresos / Gastos)</button>
 
@@ -491,11 +394,6 @@
       <div id="admin-tab-menus" class="admin-tab-panel" style="display:none">
         <div class="section-title" style="margin-top:0">Menús personalizados</div>
         <div id="admin-menus-list"></div>
-
-        <div class="section-title" style="margin-top:24px">Deudas compartidas</div>
-        <div id="admin-shared-deudas-list"></div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:10px"
-                onclick="openShareDeudasModal()">💳 + Compartir deudas</button>
       </div>
 
       <!-- TAB: Recurrentes -->
@@ -507,21 +405,7 @@
 
       <!-- TAB: Configuración -->
       <div id="admin-tab-config" class="admin-tab-panel" style="display:none">
-        <div class="section-title" style="margin-top:0">Conexión GAS / Sheets</div>
-        <div class="form-row" style="margin-bottom:8px">
-          <label>URL del web app <small style="color:var(--text2);font-weight:400">(desplegado como "Anyone")</small></label>
-          <input id="admin-gas-url" type="url" placeholder="https://script.google.com/macros/s/…/exec"
-                 autocomplete="off" spellcheck="false">
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm"   onclick="saveGasUrl()">💾 Guardar</button>
-          <button class="btn btn-primary btn-sm" onclick="testGasUrl()">🔌 Probar conexión</button>
-          <button class="btn btn-ghost btn-sm"   onclick="closeAdminPanel();forceSyncNow()">🔄 Sincronizar</button>
-          <button class="btn btn-ghost btn-sm"   onclick="manualPushUsers()">👥 Subir usuarios</button>
-          <span id="admin-gas-status" style="font-size:.75rem">No configurada</span>
-        </div>
-
-        <div class="section-title">Mantenimiento</div>
+        <div class="section-title" style="margin-top:0">Mantenimiento</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <button class="btn btn-ghost btn-sm" onclick="hardRefreshApp()">🧹 Limpiar caché y recargar</button>
           <span style="font-size:.72rem;color:var(--text2)">Borra caché del service worker y fuerza la última versión. No borra tus datos.</span>
@@ -543,39 +427,6 @@
     <div id="recurring-history-list" style="max-height:50vh;overflow-y:auto;margin:12px 0"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeRecurringHistoryModal()">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── USER FORM MODAL (crear / editar) ──────────────── -->
-<div class="modal-overlay" id="user-form-modal">
-  <div class="modal">
-    <h3 id="user-form-title">Nuevo usuario</h3>
-    <input type="hidden" id="user-form-id">
-    <div class="form-row">
-      <label>Nombre</label>
-      <input id="user-form-name" type="text" autocomplete="off" placeholder="Nombre del usuario">
-    </div>
-    <div class="form-row">
-      <label>Rol</label>
-      <select id="user-form-role">
-        <option value="viewer">Visitante</option>
-        <option value="editor">Editor</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label>PIN <small id="user-form-pin-hint" style="color:var(--text2);font-weight:400">Requerido</small></label>
-      <input id="user-form-pin" type="password" inputmode="numeric" placeholder="••••" maxlength="8">
-    </div>
-    <div class="form-row">
-      <label>Confirmar PIN</label>
-      <input id="user-form-pin2" type="password" inputmode="numeric" placeholder="••••" maxlength="8">
-    </div>
-    <div class="login-error" id="user-form-error"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeUserForm()">Cancelar</button>
-      <button class="btn btn-primary" onclick="submitUserForm()">Guardar</button>
     </div>
   </div>
 </div>
@@ -636,88 +487,6 @@
     <div class="modal-actions">
       <button class="btn btn-ghost"   onclick="closeBudgetsModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveBudgetsModal()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── GAS CONNECT MODAL ──────────────────────────────────── -->
-<div class="modal-overlay" id="gas-connect-modal">
-  <div class="modal" style="width:440px">
-    <h3>🔗 Conectar al servidor</h3>
-    <p style="font-size:.82rem;color:var(--text2);margin-bottom:16px">
-      Ingresa las credenciales que el administrador del servidor te proporcionó.
-      Tu cuenta local no se modifica.
-    </p>
-    <div class="form-row">
-      <label>URL del servidor</label>
-      <input id="gc-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="form-row">
-      <label>Tu usuario en el servidor</label>
-      <input id="gc-username" type="text" placeholder="Nombre exacto registrado" autocomplete="off">
-    </div>
-    <div class="form-row">
-      <label>PIN del servidor</label>
-      <input id="gc-pin" type="password" inputmode="numeric" placeholder="••••" maxlength="8" autocomplete="current-password">
-    </div>
-    <div class="login-error" id="gc-error"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeGasConnectModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="submitGasConnect()">Conectar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── SHARE DEUDAS MODAL ────────────────────────────────── -->
-<div class="modal-overlay" id="share-deudas-modal">
-  <div class="modal" style="width:460px">
-    <h3>💳 Compartir Deudas</h3>
-    <input type="hidden" id="sdm-id">
-    <div class="form-row">
-      <label>Nombre visible</label>
-      <input id="sdm-name" type="text" placeholder="Ej: Deudas familia" autocomplete="off">
-    </div>
-    <div class="form-row">
-      <label>Nombre de la hoja <small style="color:var(--text2);font-weight:400">(pestaña en Google Sheets)</small></label>
-      <input id="sdm-sheet" type="text" placeholder="_shared_deudas" autocomplete="off">
-    </div>
-    <div class="form-row">
-      <label>Acceso para usuarios</label>
-      <div id="sdm-users" style="max-height:200px;overflow-y:auto;background:var(--bg3);border-radius:8px;padding:8px 12px;border:1px solid var(--border)"></div>
-    </div>
-    <div id="sdm-new-only" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
-      <div style="font-size:.78rem;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px 12px">
-        ⚠️ Esto crea un pool <strong>independiente y vacío</strong>. Tus deudas locales actuales NO se copian aquí automáticamente.
-      </div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:.85rem">
-        <input type="checkbox" id="sdm-copy-local">
-        Copiar mis deudas locales aquí (una sola vez, al crear)
-      </label>
-    </div>
-    <div class="login-error" id="sdm-error"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeShareDeudasModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveSharedDeudasConfig()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── SHARE MENU MODAL ───────────────────────────────────── -->
-<div class="modal-overlay" id="share-modal">
-  <div class="modal" style="width:460px">
-    <h3 id="share-modal-title">Compartir menú</h3>
-    <input type="hidden" id="share-modal-menu-id">
-    <div class="form-row">
-      <label>Nombre de la hoja <small style="color:var(--text2);font-weight:400">(pestaña en Google Sheets)</small></label>
-      <input id="share-sheet-name" type="text" placeholder="Ej: Vacaciones2024" autocomplete="off">
-    </div>
-    <div class="section-title" style="margin-top:16px">Acceso de usuarios</div>
-    <div id="share-users-list" style="margin-top:8px"></div>
-    <div class="login-error" id="share-error"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost"   onclick="closeShareModal()">Cancelar</button>
-      <button class="btn btn-ghost"   id="btn-unshare" style="display:none;color:var(--red);border-color:var(--red)" onclick="confirmUnshareMenu()">🔒 Dejar de compartir</button>
-      <button class="btn btn-primary" onclick="saveShareModal()">Guardar</button>
     </div>
   </div>
 </div>
@@ -1099,17 +868,13 @@
 <!-- ── SCRIPTS ────────────────────────────────────────────── -->
 <script src="js/attachments.js"></script>
 <script src="js/config.js"></script>
-<script src="js/auth.js"></script>
 <script src="js/db.js"></script>
-<script src="js/gas.js"></script>
-<script src="js/sync.js"></script>
 <script src="js/render/nav.js"></script>
 <script src="js/render/inicio.js"></script>
 <script src="js/render/deudas.js"></script>
 <script src="js/render/custom-menu.js"></script>
 <script src="js/render/admin.js"></script>
 <script src="js/autosave.js"></script>
-<script src="js/gas-identity.js"></script>
 <script src="js/main.js"></script>
 <script>
   if ('serviceWorker' in navigator) {

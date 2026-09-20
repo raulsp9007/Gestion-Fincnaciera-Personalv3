@@ -189,29 +189,15 @@ function renderCustomMenu(menuId) {
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="font-weight:700;font-size:1.05rem">${esc(menu.name)}</span>
-            ${menu.shared ? `<span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--acc)22;color:var(--acc);font-weight:600">Compartido</span>` : ''}
           </div>
-          <div style="font-size:.72rem;color:var(--text2)">${esc(curr)}${menu.shared ? (() => {
-            const others = (menu.sharedWith ?? []).filter(u => u.name !== currentUser?.name);
-            return others.length ? ' · con ' + others.map(u => `${esc(u.name)} (${esc(u.role)})`).join(', ') : ' · solo tú';
-          })() : ''}</div>
+          <div style="font-size:.72rem;color:var(--text2)">${esc(curr)}</div>
         </div>
-        ${menu.shared ? `<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex:none" title="Sincronizado"></div>` : ''}
       </div>
       <div class="hg-scrollx" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
-        ${_canWriteMenuTxs(menu) ? `
-          <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openMenuImportPicker(${menuId})">⬆ Importar</button>
-        ` : ''}
-        ${_canEditMenu(menu) ? `
-          ${!menu.shared ? `
-            <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openEditMenuModal(${menuId})">✏️ Editar</button>
-            <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap;color:var(--red)" onclick="confirmDeleteMenu(${menuId})">🗑️</button>
-          ` : ''}
-          <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openShareModal(${menuId})">🔑 ${menu.shared ? 'Acceso' : 'Compartir'}</button>
-        ` : ''}
+        <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openMenuImportPicker(${menuId})">⬆ Importar</button>
+        <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openEditMenuModal(${menuId})">✏️ Editar</button>
+        <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap;color:var(--red)" onclick="confirmDeleteMenu(${menuId})">🗑️</button>
         <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="generateMenuReport(${menuId})">📄 Reporte</button>
-        ${menu.shared ? `<button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openMenuHistory(${menuId})">🕓 Historial</button>` : ''}
-        ${menu.shared ? `<button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" title="Fuerza push+pull completo de todos los registros" onclick="forceFullMenuSync(${menuId})">↺ Sync</button>` : ''}
       </div>
     </div>
     ${_menuMonthTabs(menuId, ym)}
@@ -834,7 +820,6 @@ function confirmDeleteMenuTx(menuId, txId) {
     const menu = getCustomMenu(menuId);
     if (typeof _logHistory === 'function') _logHistory({ menuId, menuName: menu?.name ?? '', action: 'delete', desc: tx.description, amount: tx.amount, txType: tx.type });
     deleteMenuTx(menuId, txId);
-    pushDeleteToGas(menuId, txId);
     renderCustomMenu(menuId);
     showToast('Movimiento eliminado', 'var(--red)');
   }, { icon: '🗑️', okLabel: 'Eliminar' });
@@ -1020,105 +1005,9 @@ function handleMenuImportFile(input) {
   reader.readAsText(file);
 }
 
-// ── Role helpers ──────────────────────────────────────────
-function _canEditMenu(menu) {
-  const role = currentUser?.role;
-  return menu.shared ? menu.myRole === 'admin' : (role === 'admin' || role === 'editor');
-}
-
-function _canWriteMenuTxs(menu) {
-  return menu.shared ? menu.myRole !== 'viewer' : currentUser?.role !== 'viewer';
-}
-
-// ── Share modal ───────────────────────────────────────────
-function openShareModal(menuId) {
-  const menu = getCustomMenu(menuId);
-  if (!menu) return;
-  document.getElementById('share-modal-menu-id').value      = menuId;
-  document.getElementById('share-modal-title').textContent  =
-    menu.shared ? 'Gestionar acceso compartido' : 'Compartir menú';
-  document.getElementById('share-sheet-name').value         = menu.sheetName ?? '';
-  document.getElementById('share-error').textContent        = '';
-  document.getElementById('btn-unshare').style.display      = menu.shared ? '' : 'none';
-  _renderShareUsers(menu);
-  document.getElementById('share-modal').classList.add('open');
-}
-
-function closeShareModal() {
-  document.getElementById('share-modal').classList.remove('open');
-}
-
-async function confirmUnshareMenu() {
-  const menuId = parseInt(document.getElementById('share-modal-menu-id').value, 10);
-  const menu   = getCustomMenu(menuId);
-  if (!menu) return;
-  if (!confirm(`¿Dejar de compartir "${menu.name}"? Los datos locales se conservan pero el menú dejará de sincronizarse.`)) return;
-  unshareMenu(menuId);
-  try {
-    if (getGasUrl()) await pushSharedConfig();
-  } catch { /* non-fatal */ }
-  closeShareModal();
-  buildNav();
-  renderCustomMenu(menuId);
-  showToast('Menú dejado de compartir');
-}
-
-function _renderShareUsers(menu) {
-  const users = loadUsers().filter(u => u.id !== currentUser?.id);
-  const el    = document.getElementById('share-users-list');
-  if (!users.length) {
-    el.innerHTML = '<div class="empty" style="font-size:.82rem;padding:12px 0">Sin otros usuarios registrados</div>';
-    return;
-  }
-  el.innerHTML = users.map(u => {
-    const sw      = menu.sharedWith?.find(s => s.name === u.name);
-    const checked = sw ? 'checked' : '';
-    const role    = sw?.role ?? 'viewer';
-    return `<div class="cat-row" style="gap:8px;align-items:center">
-      <input type="checkbox" id="share-chk-${u.id}" value="${u.id}" ${checked}
-             onchange="document.getElementById('share-role-${u.id}').disabled=!this.checked"
-             style="margin:0;width:16px;height:16px;cursor:pointer;accent-color:var(--acc)">
-      <label for="share-chk-${u.id}" style="flex:1;cursor:pointer">${esc(u.name)}</label>
-      <select id="share-role-${u.id}" ${checked ? '' : 'disabled'}
-              style="width:auto;padding:4px 8px;font-size:.8rem">
-        <option value="viewer" ${role === 'viewer' ? 'selected' : ''}>Visitante</option>
-        <option value="editor" ${role === 'editor' ? 'selected' : ''}>Editor</option>
-        <option value="admin"  ${role === 'admin'  ? 'selected' : ''}>Admin</option>
-      </select>
-    </div>`;
-  }).join('');
-}
-
-async function saveShareModal() {
-  const menuId    = parseInt(document.getElementById('share-modal-menu-id').value, 10);
-  const sheetName = document.getElementById('share-sheet-name').value.trim();
-  const errEl     = document.getElementById('share-error');
-  errEl.textContent = '';
-
-  if (!sheetName)    { errEl.textContent = 'Nombre de hoja obligatorio.'; return; }
-  if (!getGasUrl())  { errEl.textContent = 'Configura la URL de GAS en el panel Admin.'; return; }
-
-  const users      = loadUsers().filter(u => u.id !== currentUser?.id);
-  const sharedWith = users
-    .filter(u => document.getElementById(`share-chk-${u.id}`)?.checked)
-    .map(u => ({ name: u.name, role: document.getElementById(`share-role-${u.id}`)?.value ?? 'viewer' }));
-
-  shareMenu(menuId, sheetName, sharedWith);
-
-  try {
-    setSyncBadge('saving');
-    await pushSharedConfig();
-    await pushMenuToGas(menuId); // sube filas existentes al sheet por primera vez
-    setSyncBadge('ok');
-    closeShareModal();
-    buildNav();
-    renderCustomMenu(menuId);
-    showToast('Menú compartido ✓');
-  } catch (e) {
-    setSyncBadge('error');
-    errEl.textContent = 'Error al sincronizar: ' + e.message;
-  }
-}
+// ── Role helpers (single-usuario, siempre acceso total) ───
+function _canEditMenu() { return true; }
+function _canWriteMenuTxs() { return true; }
 
 // ── VEHICLE MENU ─────────────────────────────────────────────
 const _FUEL_TYPE_EMOJI = {
@@ -1514,7 +1403,6 @@ function saveFuelEntry() {
 
   closeFuelModal();
   renderVehicleMenu(menuId);
-  onMenuSaved(menuId).catch(() => {});
   showToast('Carga guardada ✓');
 }
 
@@ -1523,7 +1411,6 @@ function confirmDeleteFuelEntry() {
   const entryId = parseInt(document.getElementById('fuel-entry-id').value, 10);
   showConfirm('¿Eliminar este registro de carga?', () => {
     deleteMenuTx(menuId, entryId);
-    pushDeleteToGas(menuId, entryId);
     closeFuelModal();
     renderVehicleMenu(menuId);
     showToast('Registro eliminado');
@@ -1592,7 +1479,6 @@ function saveOilEntry() {
 
   closeOilModal();
   renderVehicleMenu(menuId);
-  onMenuSaved(menuId).catch(() => {});
   showToast('Cambio de aceite guardado ✓');
 }
 
@@ -1601,7 +1487,6 @@ function confirmDeleteOilEntry() {
   const entryId = parseInt(document.getElementById('oil-entry-id').value, 10);
   showConfirm('¿Eliminar este cambio de aceite?', () => {
     deleteMenuTx(menuId, entryId);
-    pushDeleteToGas(menuId, entryId);
     closeOilModal();
     renderVehicleMenu(menuId);
     showToast('Registro eliminado');
@@ -1684,7 +1569,6 @@ function saveMaintEntry() {
 
   closeMaintenanceModal();
   renderVehicleMenu(menuId);
-  onMenuSaved(menuId).catch(() => {});
   showToast('Mantenimiento guardado ✓');
 }
 
@@ -1693,7 +1577,6 @@ function confirmDeleteMaintEntry() {
   const entryId = parseInt(document.getElementById('maint-entry-id').value, 10);
   showConfirm('¿Eliminar este registro de mantenimiento?', () => {
     deleteMenuTx(menuId, entryId);
-    pushDeleteToGas(menuId, entryId);
     closeMaintenanceModal();
     renderVehicleMenu(menuId);
     showToast('Registro eliminado');
@@ -1734,9 +1617,8 @@ function saveVehicleInfo() {
     purchaseKm:    parseInt(document.getElementById('vim-purchase-km').value, 10) || 0,
   };
   updateCustomMenu(menuId, { vehicleInfo });
-  onMenuSaved(menuId).catch(() => {});
   const updatedMenu = getCustomMenu(menuId);
-  if (updatedMenu?.shared && typeof pushSharedConfig === 'function') pushSharedConfig().catch(() => {});
+  
   closeVehicleInfoModal();
   renderVehicleMenu(menuId);
   showToast('Datos del vehículo guardados ✓');

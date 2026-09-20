@@ -2,21 +2,18 @@
 
 // ── Panel Admin — modal principal ─────────────────────────
 async function openAdminPanel() {
-  renderAdminUsers();
-  renderGasSection();
   // Abrir Admin es un clic real: aprovecha ese gesto para forzar el
   // permiso de la carpeta de autoguardado si ya expiró.
   if (typeof forceAutosaveFolderPermission === 'function') {
     await forceAutosaveFolderPermission();
   }
   renderAutosaveSection();
-  renderSharedDeudasAdmin();
   _renderTimezoneSection();
   _renderTimeFormatSection();
   _renderAdminMenusList();
   renderAdminRecurring();
   document.getElementById('admin-modal').classList.add('open');
-  switchAdminTab('usuarios');
+  switchAdminTab('categorias');
 }
 
 function _renderAdminMenusList() {
@@ -101,7 +98,7 @@ function switchAdminTab(id) {
   // Activar botón correspondiente
   const bar = document.getElementById('admin-tab-bar');
   if (bar) {
-    const idx = ['usuarios','categorias','autosave','datos','menus','recurrentes','config'].indexOf(id);
+    const idx = ['categorias','autosave','datos','menus','recurrentes','config'].indexOf(id);
     const btns = bar.querySelectorAll('.admin-tab');
     if (btns[idx]) btns[idx].classList.add('active');
   }
@@ -109,278 +106,6 @@ function switchAdminTab(id) {
 
 function closeAdminPanel() {
   document.getElementById('admin-modal').classList.remove('open');
-}
-
-// ── Lista de usuarios ─────────────────────────────────────
-function renderAdminUsers() {
-  const users = loadUsers();
-  const el    = document.getElementById('admin-users-list');
-
-  if (!users.length) {
-    el.innerHTML = '<div class="empty">Sin usuarios</div>';
-    return;
-  }
-
-  el.innerHTML = users.map(u => `
-    <div class="cat-row">
-      <span class="cat-row-label" style="font-weight:600">${esc(u.name)}</span>
-      <span class="role-chip ${u.role}">${u.role}</span>
-      ${u.id !== currentUser.id ? `
-        <div class="cat-row-actions">
-          <button title="Editar" onclick="openEditUserForm(${u.id})">✏️</button>
-          <button title="Eliminar" onclick="confirmDeleteUser(${u.id})">🗑️</button>
-        </div>
-      ` : '<span style="font-size:.72rem;color:var(--text2)">(tú)</span>'}
-    </div>
-  `).join('');
-}
-
-// ── Formulario crear usuario ──────────────────────────────
-function openCreateUserForm() {
-  document.getElementById('user-form-id').value        = '';
-  document.getElementById('user-form-title').textContent = 'Nuevo usuario';
-  document.getElementById('user-form-name').value      = '';
-  document.getElementById('user-form-role').value      = 'viewer';
-  document.getElementById('user-form-pin').value       = '';
-  document.getElementById('user-form-pin2').value      = '';
-  document.getElementById('user-form-pin-hint').textContent = 'Requerido';
-  document.getElementById('user-form-error').textContent  = '';
-  document.getElementById('user-form-modal').classList.add('open');
-}
-
-// ── Formulario editar usuario ─────────────────────────────
-function openEditUserForm(userId) {
-  const u = loadUsers().find(u => u.id === userId);
-  if (!u) return;
-
-  document.getElementById('user-form-id').value        = userId;
-  document.getElementById('user-form-title').textContent = 'Editar usuario';
-  document.getElementById('user-form-name').value      = u.name;
-  document.getElementById('user-form-role').value      = u.role;
-  document.getElementById('user-form-pin').value       = '';
-  document.getElementById('user-form-pin2').value      = '';
-  document.getElementById('user-form-pin-hint').textContent = 'Dejar vacío para no cambiar';
-  document.getElementById('user-form-error').textContent  = '';
-  document.getElementById('user-form-modal').classList.add('open');
-}
-
-function closeUserForm() {
-  document.getElementById('user-form-modal').classList.remove('open');
-}
-
-// ── Guardar (crear o editar) ──────────────────────────────
-async function submitUserForm() {
-  const id    = document.getElementById('user-form-id').value;
-  const name  = document.getElementById('user-form-name').value.trim();
-  const role  = document.getElementById('user-form-role').value;
-  const pin   = document.getElementById('user-form-pin').value;
-  const pin2  = document.getElementById('user-form-pin2').value;
-  const errEl = document.getElementById('user-form-error');
-  errEl.textContent = '';
-
-  if (!name) { errEl.textContent = 'Nombre obligatorio.'; return; }
-
-  if (!id) {
-    // Crear
-    if (!/^\d{4,8}$/.test(pin)) { errEl.textContent = 'PIN debe ser 4–8 dígitos numéricos.'; return; }
-    if (pin !== pin2)           { errEl.textContent = 'Los PINs no coinciden.'; return; }
-    await createUser(name, pin, role);
-  } else {
-    // Editar
-    const uid = parseInt(id, 10);
-    updateUserName(uid, name);
-    updateUserRole(uid, role);
-    if (pin) {
-      if (!/^\d{4,8}$/.test(pin)) { errEl.textContent = 'PIN debe ser 4–8 dígitos numéricos.'; return; }
-      if (pin !== pin2)           { errEl.textContent = 'Los PINs no coinciden.'; return; }
-      await updateUserPin(uid, pin);
-    }
-  }
-
-  closeUserForm();
-  renderAdminUsers();
-  showToast(id ? 'Usuario actualizado' : 'Usuario creado');
-}
-
-// ── Sección GAS ───────────────────────────────────────────
-function renderGasSection() {
-  const url = getGasUrl();
-  document.getElementById('admin-gas-url').value = url;
-  _setGasStatus(url ? 'saved' : 'empty');
-}
-
-function _setGasStatus(state, msg) {
-  const el = document.getElementById('admin-gas-status');
-  const map = {
-    empty:   { text: 'No configurada',  color: 'var(--text2)' },
-    saved:   { text: 'URL guardada',    color: 'var(--yellow)' },
-    testing: { text: 'Probando…',       color: 'var(--acc)' },
-    ok:      { text: msg ?? 'Conectado ✓', color: 'var(--green)' },
-    error:   { text: msg ?? 'Error',    color: 'var(--red)' },
-  };
-  const s = map[state] ?? map.empty;
-  el.textContent = s.text;
-  el.style.color = s.color;
-}
-
-function saveGasUrl() {
-  const url = document.getElementById('admin-gas-url').value.trim();
-  setGasUrl(url);
-  _setGasStatus(url ? 'saved' : 'empty');
-  showToast(url ? 'URL guardada' : 'URL eliminada');
-}
-
-async function testGasUrl() {
-  const url = document.getElementById('admin-gas-url').value.trim();
-  if (!url) { showToast('Introduce una URL primero', 'var(--yellow)'); return; }
-  setGasUrl(url);
-  _setGasStatus('testing');
-  try {
-    await testGasConnection();
-    _setGasStatus('ok', 'Conectado ✓ — sincronizando…');
-    // Pull config y menús compartidos inmediatamente tras conectar
-    await connectAndSync();
-    await _mergeAndPushUsers();
-    _setGasStatus('ok', 'Conectado ✓');
-    buildNav();
-  } catch (e) {
-    _setGasStatus('error', 'Error: ' + e.message);
-  }
-}
-
-// Pull usuarios de GAS, mergear con locales (GAS gana por nombre), push resultado.
-async function _mergeAndPushUsers() {
-  try {
-    const gasUsers   = await pullUsersFromGas(getGasUrl());
-    const localUsers = loadUsers();
-    const merged     = [...gasUsers];
-    for (const lu of localUsers) {
-      if (!merged.find(u => u.name === lu.name)) merged.push(lu);
-    }
-    saveUsers(merged);
-  } catch {
-    // Si GAS no tiene usuarios aún, solo push los locales
-    await pushUsersToGas();
-  }
-}
-
-async function manualPushUsers() {
-  if (!getGasUrl()) { showToast('Configura la URL del servidor primero', 'var(--yellow)'); return; }
-  try {
-    await pushUsersToGas();
-    showToast('Usuarios subidos al servidor ✓', 'var(--green)');
-  } catch (e) {
-    showToast('Error al subir usuarios: ' + e.message, 'var(--red)');
-  }
-}
-
-// ── Deudas compartidas (admin) ────────────────────────────
-function renderSharedDeudasAdmin() {
-  const el = document.getElementById('admin-shared-deudas-list');
-  if (!el) return;
-  const list = getSharedDeudasMenus();
-  if (!list.length) {
-    el.innerHTML = '<div class="empty" style="font-size:.8rem;color:var(--text2)">Sin deudas compartidas configuradas</div>';
-    return;
-  }
-  el.innerHTML = list.map(m => `
-    <div class="cat-row">
-      <span class="cat-row-label" style="font-weight:600">💳 ${esc(m.name)}</span>
-      <span style="font-size:.7rem;color:var(--text2)">${esc(m.sheetName ?? '')}</span>
-      <div class="cat-row-actions">
-        <button title="Compartir/Editar" onclick="openShareDeudasModal(${m.id})">✏️</button>
-        <button title="Eliminar" onclick="confirmDeleteSharedDeudas(${m.id})" style="color:var(--red)">🗑️</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function openShareDeudasModal(editId) {
-  const m = editId ? getSharedDeudasMenu(editId) : null;
-  document.getElementById('sdm-id').value    = editId ?? '';
-  document.getElementById('sdm-name').value  = m?.name ?? 'Deudas compartidas';
-  document.getElementById('sdm-sheet').value = m?.sheetName ?? '_shared_deudas';
-  document.getElementById('sdm-error').textContent = '';
-  document.getElementById('sdm-new-only').style.display = editId ? 'none' : '';
-  document.getElementById('sdm-copy-local').checked = false;
-
-  const users = loadUsers().filter(u => u.id !== currentUser.id);
-  const shared = m?.sharedWith ?? [];
-  document.getElementById('sdm-users').innerHTML = users.map(u => {
-    const entry = shared.find(s => s.name === u.name);
-    return `<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.85rem">
-      <input type="checkbox" value="${esc(u.name)}" ${entry ? 'checked' : ''}
-             onchange="_sdmUpdateRole(this)">
-      <span style="flex:1">${esc(u.name)}</span>
-      <select id="sdm-role-${esc(u.name)}" style="font-size:.75rem;padding:2px 6px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text)" ${!entry ? 'disabled' : ''}>
-        <option value="viewer" ${entry?.role === 'viewer' ? 'selected' : ''}>viewer</option>
-        <option value="editor" ${!entry || entry?.role === 'editor' ? 'selected' : ''}>editor</option>
-        <option value="admin"  ${entry?.role === 'admin'  ? 'selected' : ''}>admin</option>
-      </select>
-    </label>`;
-  }).join('') || '<div style="font-size:.8rem;color:var(--text2)">No hay otros usuarios</div>';
-
-  document.getElementById('share-deudas-modal').classList.add('open');
-}
-
-function _sdmUpdateRole(checkbox) {
-  const sel = document.getElementById('sdm-role-' + checkbox.value);
-  if (sel) sel.disabled = !checkbox.checked;
-}
-
-function closeShareDeudasModal() {
-  document.getElementById('share-deudas-modal').classList.remove('open');
-}
-
-async function saveSharedDeudasConfig() {
-  const editId    = document.getElementById('sdm-id').value;
-  const name      = document.getElementById('sdm-name').value.trim();
-  const sheetName = document.getElementById('sdm-sheet').value.trim();
-  const errEl     = document.getElementById('sdm-error');
-  errEl.textContent = '';
-
-  if (!name || !sheetName) { errEl.textContent = 'Nombre y hoja son obligatorios.'; return; }
-  if (!getGasUrl()) { errEl.textContent = 'Configura la URL del servidor primero.'; return; }
-
-  const checkboxes = document.getElementById('sdm-users').querySelectorAll('input[type=checkbox]:checked');
-  const sharedWith = [...checkboxes].map(cb => ({
-    name: cb.value,
-    role: document.getElementById('sdm-role-' + cb.value)?.value ?? 'editor'
-  }));
-
-  errEl.style.color = 'var(--text2)';
-  errEl.textContent = 'Guardando…';
-
-  try {
-    if (editId) {
-      updateSharedDeudasMenu(parseInt(editId, 10), { name, sheetName, sharedWith });
-    } else {
-      const copyLocal = document.getElementById('sdm-copy-local')?.checked;
-      const initialData = copyLocal ? JSON.parse(JSON.stringify(loadData().deudas ?? [])) : [];
-      addSharedDeudasMenu({ name, sheetName, sharedWith, data: initialData });
-    }
-    await pushSharedDeudasConfig();
-    buildNav();
-    renderSharedDeudasAdmin();
-    closeShareDeudasModal();
-    showToast('Deudas compartidas guardadas ✓');
-  } catch (e) {
-    errEl.style.color = 'var(--red)';
-    errEl.textContent = 'Error: ' + e.message;
-  }
-}
-
-function confirmDeleteSharedDeudas(id) {
-  const m = getSharedDeudasMenu(id);
-  if (!m) return;
-  showConfirm(`¿Dejar de compartir "${m.name}"? Se eliminará de los dispositivos conectados en la próxima sincronización.`, async () => {
-    deleteSharedDeudasMenu(id);
-    if (getGasUrl()) await pushSharedDeudasConfig().catch(() => {});
-    buildNav();
-    renderSharedDeudasAdmin();
-    if (typeof _currentView !== 'undefined' && _currentView === 'sdeudas-' + id) switchView('deudas');
-    showToast('Deudas descompartidas', 'var(--yellow)');
-  }, { icon: '💳', okLabel: 'Descompartir' });
 }
 
 // ── Exportar datos ───────────────────────────────────────
@@ -441,17 +166,6 @@ function handleImportFile(input) {
     }, { icon: '📥', okLabel: 'Importar' });
   };
   reader.readAsText(file);
-}
-
-// ── Eliminar usuario ──────────────────────────────────────
-function confirmDeleteUser(userId) {
-  const u = loadUsers().find(u => u.id === userId);
-  if (!u) return;
-  showConfirm(`¿Eliminar usuario "${u.name}"?`, () => {
-    deleteUser(userId);
-    renderAdminUsers();
-    showToast('Usuario eliminado', 'var(--red)');
-  }, { icon: '🗑️', okLabel: 'Eliminar' });
 }
 
 // ── Categorías ────────────────────────────────────────────
@@ -682,9 +396,7 @@ function renderAdminRecurring() {
       ? '<span class="badge pendiente">⏸ Pausado</span>'
       : `Próx: ${fmtDate(t.recurringNext)}`;
     const menuArg  = t.menuId ?? 'null';
-    // Mismo permiso que el resto de la app: viewer (global o por-menú
-    // compartido) no puede pausar/editar/eliminar, solo ver el historial.
-    const canWrite = t.menuId == null ? currentUser?.role !== 'viewer' : _canWriteMenuTxs(menu);
+    const canWrite = true;
     return `<div class="cat-row">
       <span class="cat-row-label" style="font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.description || 'Recurrente')}</span>
       <span style="font-size:.72rem;color:var(--text2);flex-shrink:0">${esc(t.menuName)}</span>
@@ -703,10 +415,8 @@ function renderAdminRecurring() {
   }).join('');
 }
 
-function _afterRecurringChange(menuId) {
+function _afterRecurringChange() {
   renderAdminRecurring();
-  if (menuId == null) syncPrivateData().catch(() => {});
-  else onMenuSaved(menuId).catch(() => {});
 }
 
 function _adminPauseRecurring(menuId, id) {
@@ -734,13 +444,8 @@ function adminDeleteRecurringTemplate(menuId, id) {
   showConfirm(
     `¿Eliminar la plantilla recurrente "${esc(tx.description || 'Recurrente')}"? El historial de registros ya generados NO se borra.`,
     () => {
-      if (menuId == null) {
-        deleteTx(id);
-        syncPrivateData().catch(() => {});
-      } else {
-        deleteMenuTx(menuId, id);
-        pushDeleteToGas(menuId, id);
-      }
+      if (menuId == null) deleteTx(id);
+      else                deleteMenuTx(menuId, id);
       renderAdminRecurring();
       showToast('Plantilla eliminada');
     },

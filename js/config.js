@@ -1,29 +1,19 @@
 'use strict';
 
-// ── Versión y caché ───────────────────────────────────────
-const APP_VERSION  = 'v3-1';
+// ── Versión y caché — 100% local, sin cuenta ni servidor ──
+const APP_VERSION  = 'v3-offline-1';
 const CACHE_KEY    = 'cashmap_v2_data';
-const USERS_KEY    = 'cashmap_v2_users';
-const SESSION_KEY  = 'cashmap_v2_session';
-const SYNC_QUEUE   = 'cashmap_v2_sync_queue';
-const GAS_URL_KEY  = 'cashmap_v2_gas_url';
-
-// ── Sync ──────────────────────────────────────────────────
-const POLL_INTERVAL_VISIBLE    = 30_000;  // 30s
-const POLL_INTERVAL_BACKGROUND = 300_000; // 5min
-const SAVE_DEBOUNCE            = 0;       // sin debounce — push inmediato para menús compartidos
 
 // ── Datos por defecto ─────────────────────────────────────
 const DEFAULT_DATA = {
-  version:           2,
-  inicio:            [],
-  deudas:            [],
-  customMenus:       [],
-  sharedDeudasMenus: [],
-  globalCats:        { inc: {}, exp: {} },
-  budgets:           {},
-  navOrder:          ['inicio'],
-  config:            {}
+  version:     2,
+  inicio:      [],
+  deudas:      [],
+  customMenus: [],
+  globalCats:  { inc: {}, exp: {} },
+  budgets:     {},
+  navOrder:    ['inicio'],
+  config:      {}
 };
 
 // ── Categorías por defecto — importadas desde v1 live data ─

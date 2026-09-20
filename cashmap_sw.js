@@ -1,26 +1,25 @@
 'use strict';
 
-const CACHE_NAME = 'cashmap-v3-1';
+const CACHE_NAME = 'cashmap-v3-offline-1';
 
 const PRECACHE = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-512-maskable.png',
   './css/main.css',
   './js/attachments.js',
   './js/config.js',
-  './js/auth.js',
   './js/db.js',
-  './js/gas.js',
-  './js/sync.js',
   './js/render/nav.js',
   './js/render/inicio.js',
   './js/render/deudas.js',
   './js/render/custom-menu.js',
   './js/render/admin.js',
   './js/autosave.js',
-  './js/gas-identity.js',
   './js/main.js'
 ];
 

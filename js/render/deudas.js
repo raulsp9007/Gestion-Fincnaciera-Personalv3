@@ -1,32 +1,15 @@
 'use strict';
 
-// ── Fuente activa de deudas ───────────────────────────────
-// 'local' = deudas personales | number = id de sharedDeudasMenu
-let _deudaSource = 'local';
-
+// ── Deudas — 100% local, sin fuentes compartidas ──────────
 function _getDeudas() {
-  if (_deudaSource === 'local') return loadData().deudas ?? [];
-  return getSharedDeudasMenu(_deudaSource)?.data ?? [];
+  return loadData().deudas ?? [];
 }
 
 function _mutateDeudas(fn) {
   const d = loadData();
-  if (_deudaSource === 'local') {
-    if (!d.deudas) d.deudas = [];
-    fn(d.deudas);
-  } else {
-    const m = (d.sharedDeudasMenus ?? []).find(m => m.id === _deudaSource);
-    if (m) fn(m.data);
-  }
+  if (!d.deudas) d.deudas = [];
+  fn(d.deudas);
   saveData();
-}
-
-function _afterDeudaMutation() {
-  if (_deudaSource === 'local') {
-    syncPrivateData().catch(() => {});
-  } else {
-    pushSharedDeudas(_deudaSource).catch(() => {});
-  }
 }
 
 // ── Helpers ───────────────────────────────────────────────
@@ -76,14 +59,7 @@ function _fmtDeudaDate(dateStr) {
 }
 
 // ── Main render ───────────────────────────────────────────
-function renderDeudas(sourceId) {
-  if (sourceId !== undefined) _deudaSource = sourceId;
-
-  // Al abrir una vista compartida: pull inmediato del servidor
-  if (sourceId !== undefined && sourceId !== 'local' && typeof syncSharedDeudas === 'function') {
-    syncSharedDeudas(sourceId).catch(() => {});
-  }
-
+function renderDeudas() {
   let list = [..._getDeudas()];
 
   const s  = (document.getElementById('d-search')?.value ?? '').toLowerCase();
@@ -105,9 +81,7 @@ function renderDeudas(sourceId) {
 
   document.getElementById('deudas-count').textContent = active.length + ' registro(s)';
 
-  const emptyMsg = _deudaSource !== 'local'
-    ? `Sin deudas compartidas — este pool empieza vacío.<br><small style="color:var(--text2)">Las deudas que añadas aquí se sincronizan con el servidor.</small>`
-    : 'Sin deudas activas';
+  const emptyMsg = 'Sin deudas activas';
   tbody.innerHTML = active.length
     ? active.map(_buildDeudaRow).join('')
     : `<tr><td colspan="7" class="empty" style="padding:20px">
@@ -396,28 +370,19 @@ function saveDeuda() {
 
   closeDeudaModal();
   renderDeudas();
-  _afterDeudaMutation();
   showToast(id ? 'Deuda actualizada' : 'Deuda creada');
 }
 
 function confirmDeleteDeuda() {
   if (!_editingDeudaId) return;
   const id = _editingDeudaId;
-  showConfirm('¿Eliminar esta deuda y todos sus pagos?', async () => {
-    if (_deudaSource === 'local') {
-      markDeletedForSync('deudas', id);
-    } else {
-      // Marcar como deleted en servidor ANTES de borrar localmente
-      const deuda = _getDeudas().find(x => x.id === id);
-      if (deuda) await pushSharedDeudasDelete(_deudaSource, deuda).catch(() => {});
-    }
+  showConfirm('¿Eliminar esta deuda y todos sus pagos?', () => {
     _mutateDeudas(arr => {
       const idx = arr.findIndex(x => x.id === id);
       if (idx >= 0) arr.splice(idx, 1);
     });
     closeDeudaModal();
     renderDeudas();
-    _afterDeudaMutation();
     showToast('Deuda eliminada', 'var(--red)');
   }, { icon: '💳', okLabel: 'Eliminar' });
 }
@@ -430,7 +395,6 @@ function toggleDeudaStatus(id) {
     deuda.updatedAt = new Date().toISOString();
   });
   renderDeudas();
-  _afterDeudaMutation();
 }
 
 // ── recalcDeudaPaid ───────────────────────────────────────
@@ -531,7 +495,6 @@ function savePago() {
 
   closePagoModal();
   renderDeudas();
-  _afterDeudaMutation();
   showToast(editIdx >= 0 ? 'Pago actualizado' : 'Pago registrado', 'var(--green)');
 }
 
@@ -616,7 +579,6 @@ function deletePagoItem(deudaId, pIdx) {
     if (editIdx === pIdx) cancelEditPago(true);
     openPagoModal(deudaId);
     renderDeudas();
-    _afterDeudaMutation();
     showToast('Pago eliminado', 'var(--red)');
   }, { icon: '💸', okLabel: 'Eliminar pago' });
 }
@@ -684,7 +646,6 @@ function handleDeudasImportFile(input) {
           }
         });
         renderDeudas();
-        _afterDeudaMutation();
         showToast(`Importadas ${src.length} deuda(s) ✓`);
       },
       { icon: '📥', okLabel: 'Importar' }
