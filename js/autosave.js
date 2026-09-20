@@ -1,6 +1,6 @@
 'use strict';
 
-const AUTOSAVE_KEY = 'cashmap_v2_autosave';
+const AUTOSAVE_KEY = 'cashmap_v3_autosave';
 const _AS_DB       = 'cashmap_v2_fs';
 const _AS_STORE    = 'handles';
 

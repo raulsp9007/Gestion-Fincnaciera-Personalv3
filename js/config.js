@@ -1,8 +1,11 @@
 'use strict';
 
 // ── Versión y caché — 100% local, sin cuenta ni servidor ──
-const APP_VERSION  = 'v3-offline-5';
-const CACHE_KEY    = 'cashmap_v2_data';
+const APP_VERSION  = 'v3-offline-6';
+// Clave propia de V3: V2 vive en el mismo origen (raulsp9007.github.io) y su sync
+// borra/reescribe 'cashmap_v2_data'. LEGACY_KEY solo se lee una vez para sembrar.
+const CACHE_KEY    = 'cashmap_v3_data';
+const LEGACY_KEY   = 'cashmap_v2_data';
 
 // ── Datos por defecto ─────────────────────────────────────
 const DEFAULT_DATA = {

@@ -31,12 +31,23 @@ function loadData() {
     const raw = localStorage.getItem(CACHE_KEY);
     _data = raw ? JSON.parse(raw) : null;
   } catch { _data = null; }
+  const firstRun = !_data;
   if (!_data) _data = structuredClone(DEFAULT_DATA);
   // Bootstrap categories if first run
   if (!_data.globalCats || !Object.keys(_data.globalCats.inc ?? {}).length) {
     _data.globalCats = structuredClone(DEFAULT_CATS);
   }
+  if (firstRun) _seedFromLegacy();
   return _data;
+}
+
+// Primera ejecucion de V3: copia (sin compartir) lo que V2 tenga en el mismo
+// origen, quitando flags de menus compartidos. Falla en silencio si no hay nada.
+function _seedFromLegacy() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? 'null');
+    if (raw && (raw.inicio || raw.customMenus)) importV2Data(raw);
+  } catch (e) { console.error('seed legacy:', e); }
 }
 
 function saveData() {
