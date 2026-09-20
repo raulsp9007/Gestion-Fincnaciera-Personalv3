@@ -8,7 +8,18 @@ function buildNav() {
   _buildBottomNav();
 }
 
+// Menús en el orden de navOrder; los que no estén listados van al final.
+function _orderedMenus() {
+  const order = loadData().navOrder ?? [];
+  const rank  = m => { const i = order.indexOf('menu-' + m.id); return i < 0 ? Infinity : i; };
+  return [...getCustomMenus()].sort((a, b) => rank(a) - rank(b));
+}
+
 function _buildSidebar() {
+  const menuLinks = _orderedMenus().map(m => `
+    <a class="${_currentView === 'menu-' + m.id ? 'active' : ''}" onclick="switchView('menu-${m.id}')">
+      <span class="ico">${esc(m.icon ?? '📋')}</span> ${esc(m.name)}
+    </a>`).join('');
   document.getElementById('sidebar-nav').innerHTML = `
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
       <span class="ico">🏠</span> Inicio
@@ -16,9 +27,10 @@ function _buildSidebar() {
     <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
       <span class="ico">🤝</span> Deudas
     </a>
-    <a class="${_currentView === 'menus' || _currentView.startsWith('menu-') ? 'active' : ''}" onclick="switchView('menus')">
-      <span class="ico">📁</span> Menús
+    <a class="${_currentView === 'menus' ? 'active' : ''}" onclick="switchView('menus')">
+      <span class="ico">📁</span> Todos los menús
     </a>
+    ${menuLinks}
     <a onclick="openAdminPanel()">
       <span class="ico">⚙️</span> Admin
     </a>
@@ -50,7 +62,7 @@ function _buildBottomNav() {
 function _renderMenusView() {
   const el = document.getElementById('view-menus');
   if (!el) return;
-  const allMenus = getCustomMenus();
+  const allMenus = _orderedMenus();
 
   el.innerHTML = `
     <div class="menu-header">
