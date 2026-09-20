@@ -22,7 +22,7 @@ function _buildSidebar() {
     </a>`).join('');
   document.getElementById('sidebar-nav').innerHTML = `
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
-      <span class="ico">🏠</span> Inicio
+      <span class="ico">📊</span> Inicio
     </a>
     <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
       <span class="ico">🤝</span> Deudas
@@ -38,16 +38,24 @@ function _buildSidebar() {
 }
 
 function _buildBottomNav() {
+  const hogar = getCustomMenus().find(m => m.name.trim().toLowerCase() === 'hogar');
+  const hogarView = hogar ? 'menu-' + hogar.id : null;
+  const hogarTab = hogar ? `
+    <a class="${_currentView === hogarView ? 'active' : ''}" onclick="switchView('${hogarView}')">
+      <span class="bn-ico">${esc(hogar.icon ?? '🏠')}</span>
+      <span>Hogar</span>
+    </a>` : '';
   document.getElementById('bottom-nav').innerHTML = `
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
-      <span class="bn-ico">🏠</span>
+      <span class="bn-ico">📊</span>
       <span>Inicio</span>
     </a>
     <a class="${_currentView === 'deudas' ? 'active' : ''}" onclick="switchView('deudas')">
       <span class="bn-ico">🤝</span>
       <span>Deudas</span>
     </a>
-    <a class="${_currentView === 'menus' || _currentView.startsWith('menu-') ? 'active' : ''}" onclick="switchView('menus')">
+    ${hogarTab}
+    <a class="${_currentView === 'menus' || (_currentView.startsWith('menu-') && _currentView !== hogarView) ? 'active' : ''}" onclick="switchView('menus')">
       <span class="bn-ico">📁</span>
       <span>Menús</span>
     </a>
