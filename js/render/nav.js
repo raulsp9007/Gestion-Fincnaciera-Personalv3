@@ -54,10 +54,6 @@ function _buildBottomNav() {
       <span>Deudas</span>
     </a>
     ${menuTabs}
-    <a class="${_currentView === 'menus' ? 'active' : ''}" onclick="switchView('menus')">
-      <span class="bn-ico">📁</span>
-      <span>Menús</span>
-    </a>
     <a onclick="openUserMenu()">
       <span class="bn-ico">⋯</span>
       <span>Más</span>
