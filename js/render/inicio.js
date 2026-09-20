@@ -75,7 +75,7 @@ function _buildRecurringSummary() {
 
 function openNewRecurringTemplateModal() {
   closeAdminPanel();
-  openNewRecordModal();
+  _openNewTxModal();
   document.getElementById('tx-recurring').value = 'mensual';
 }
 
@@ -402,7 +402,21 @@ function _saveCatColor() {
 }
 
 // ── Modal open / close ────────────────────────────────────
+// El "+" (FAB / "+ Nuevo") es contextual: Deudas abre el formulario de deuda y
+// los menus de vehiculo ofrecen carga/aceite/mantenimiento en vez de un
+// movimiento generico (que se guardaba sin entryType).
 function openNewRecordModal() {
+  if (typeof _currentView !== 'undefined') {
+    if (_currentView === 'deudas') { openDeudaModal(); return; }
+    if (_currentView.startsWith('menu-')) {
+      const menu = getCustomMenu(parseInt(_currentView.slice(5), 10));
+      if (menu?.menuType === 'vehicle' || menu?.menuType === 'fuel') { openVehicleAddSheet(menu.id); return; }
+    }
+  }
+  _openNewTxModal();
+}
+
+function _openNewTxModal() {
   if (typeof _currentView !== 'undefined' && _currentView.startsWith('menu-')) {
     _txContext = { src: 'custom', menuId: parseInt(_currentView.slice(5), 10) };
   } else {

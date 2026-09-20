@@ -225,12 +225,12 @@ body.is-admin #tx-cat-cfg-btn{display:inline-flex}
 .role-chip.viewer{background:rgba(148,163,184,.18);color:#94a3b8}
 
 /* ── ADMIN ACTION SHEET ──────────────────────────────────── */
-#admin-sheet{display:none;position:fixed;inset:0;z-index:700}
-#admin-sheet.open{display:block}
-#admin-sheet-bd{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
-#admin-sheet-panel{position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.4);animation:sheet-up .22s ease}
+#admin-sheet,#vehicle-add-sheet{display:none;position:fixed;inset:0;z-index:700}
+#admin-sheet.open,#vehicle-add-sheet.open{display:block}
+#admin-sheet-bd,#vehicle-add-sheet-bd{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
+#admin-sheet-panel,#vehicle-add-sheet-panel{position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.4);animation:sheet-up .22s ease}
 @keyframes sheet-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
-#admin-sheet-header{display:flex;align-items:center;gap:8px;padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem}
+#admin-sheet-header,#vehicle-add-sheet-header{display:flex;align-items:center;gap:8px;padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem}
 .admin-sheet-btn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 4px;background:transparent;border:none;color:var(--text);font-size:.95rem;text-align:left;cursor:pointer;border-radius:10px;transition:background .15s}
 .admin-sheet-btn:active{background:var(--bg3)}
 .admin-sheet-btn span:first-child{font-size:1.2rem;width:28px;text-align:center}

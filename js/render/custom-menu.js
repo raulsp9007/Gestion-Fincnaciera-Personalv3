@@ -1624,3 +1624,23 @@ function saveVehicleInfo() {
   renderVehicleMenu(menuId);
   showToast('Datos del vehículo guardados ✓');
 }
+
+// ── "+" en menus de vehiculo: elegir tipo de registro ─────
+function openVehicleAddSheet(menuId) {
+  const opts = [
+    ['⛽', 'Registrar carga',    `openFuelEntryModal(${menuId})`],
+    ['🛢️', 'Cambio de aceite',  `openOilModal(${menuId})`],
+    ['🔧', 'Mantenimiento',     `openMaintenanceModal(${menuId})`]
+  ];
+  document.getElementById('vehicle-add-sheet-panel').innerHTML = `
+    <div id="vehicle-add-sheet-header"><span>➕ Nuevo registro</span></div>
+    ${opts.map(([ico, label, fn]) => `
+      <button class="admin-sheet-btn" onclick="closeVehicleAddSheet();${fn}">
+        <span>${ico}</span><span>${label}</span>
+      </button>`).join('')}`;
+  document.getElementById('vehicle-add-sheet').classList.add('open');
+}
+
+function closeVehicleAddSheet() {
+  document.getElementById('vehicle-add-sheet').classList.remove('open');
+}
