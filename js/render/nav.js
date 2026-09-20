@@ -38,14 +38,13 @@ function _buildSidebar() {
 }
 
 function _buildBottomNav() {
-  const hogar = getCustomMenus().find(m => m.name.trim().toLowerCase() === 'hogar');
-  const hogarView = hogar ? 'menu-' + hogar.id : null;
-  const hogarTab = hogar ? `
-    <a class="${_currentView === hogarView ? 'active' : ''}" onclick="switchView('${hogarView}')">
-      <span class="bn-ico">${esc(hogar.icon ?? '🏠')}</span>
-      <span>Hogar</span>
-    </a>` : '';
-  document.getElementById('bottom-nav').innerHTML = `
+  const menuTabs = _orderedMenus().map(m => `
+    <a class="${_currentView === 'menu-' + m.id ? 'active' : ''}" onclick="switchView('menu-${m.id}')">
+      <span class="bn-ico">${esc(m.icon ?? '📋')}</span>
+      <span>${esc(m.name)}</span>
+    </a>`).join('');
+  const bar = document.getElementById('bottom-nav');
+  bar.innerHTML = `
     <a class="${_currentView === 'inicio' ? 'active' : ''}" onclick="switchView('inicio')">
       <span class="bn-ico">📊</span>
       <span>Inicio</span>
@@ -54,8 +53,8 @@ function _buildBottomNav() {
       <span class="bn-ico">🤝</span>
       <span>Deudas</span>
     </a>
-    ${hogarTab}
-    <a class="${_currentView === 'menus' || (_currentView.startsWith('menu-') && _currentView !== hogarView) ? 'active' : ''}" onclick="switchView('menus')">
+    ${menuTabs}
+    <a class="${_currentView === 'menus' ? 'active' : ''}" onclick="switchView('menus')">
       <span class="bn-ico">📁</span>
       <span>Menús</span>
     </a>
@@ -64,6 +63,9 @@ function _buildBottomNav() {
       <span>Más</span>
     </a>
   `;
+  // La barra hace scroll horizontal: deja la pestaña activa visible y centrada.
+  const active = bar.querySelector('a.active');
+  if (active) bar.scrollLeft = active.offsetLeft - (bar.clientWidth - active.offsetWidth) / 2;
 }
 
 // ── Vista "Menús" — grid de todos los menús personalizados ─
