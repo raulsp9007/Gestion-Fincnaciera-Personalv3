@@ -142,7 +142,7 @@ function _buildFiles() {
   for (const m of data.customMenus ?? []) {
     files.push({
       name: `${_safeName(m.name)}_${ts}.json`,
-      content: { version: 2, menuName: m.name, icon: m.icon, currency: m.currency, data: m.data ?? [], exportedAt: new Date().toISOString() }
+      content: { version: 2, menuName: m.name, icon: m.icon, currency: m.currency, menuType: m.menuType, vehicleInfo: m.vehicleInfo, data: m.data ?? [], exportedAt: new Date().toISOString() }
     });
   }
 

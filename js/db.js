@@ -295,7 +295,7 @@ function importV2Data(raw) {
   }
 
   const srcMenus = _isMenuFile(raw)
-    ? [{ name: raw.menuName, icon: raw.icon, currency: raw.currency, data: raw.data }]
+    ? [{ name: raw.menuName, icon: raw.icon, currency: raw.currency, menuType: raw.menuType, vehicleInfo: raw.vehicleInfo, data: raw.data }]
     : (raw.customMenus ?? []);
   for (const src of srcMenus) {
     const existing = d.customMenus.find(m => m.name === src.name);
