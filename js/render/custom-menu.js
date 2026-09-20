@@ -184,7 +184,7 @@ function renderCustomMenu(menuId) {
   const _focusInfo = _captureFocusWithin(el);
   el.innerHTML = `
     <div class="menu-header" style="flex-direction:column;align-items:stretch;gap:12px">
-      <div style="display:flex;align-items:center;gap:10px">
+      <div class="menu-id" style="display:flex;align-items:center;gap:10px">
         <div style="width:38px;height:38px;border-radius:11px;background:rgba(91,140,255,.16);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none">${esc(menu.icon ?? '📋')}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -194,6 +194,7 @@ function renderCustomMenu(menuId) {
         </div>
       </div>
       <div class="hg-scrollx" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+        <span class="menu-curr-chip">${esc(curr)}</span>
         <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openMenuImportPicker(${menuId})">⬆ Importar</button>
         <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap" onclick="openEditMenuModal(${menuId})">✏️ Editar</button>
         <button class="btn btn-ghost btn-sm" style="border-radius:20px;white-space:nowrap;color:var(--red)" onclick="confirmDeleteMenu(${menuId})">🗑️</button>
@@ -1073,7 +1074,7 @@ function renderVehicleMenu(menuId) {
   const el = document.getElementById('view-custom');
   el.innerHTML = `
     <div class="menu-header">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="menu-id" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-size:1.6rem">${esc(menu.icon ?? '🚗')}</span>
         <h2 style="font-size:1.1rem;font-weight:700">${esc(menu.name)}</h2>
       </div>

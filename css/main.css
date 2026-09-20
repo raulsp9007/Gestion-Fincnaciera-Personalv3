@@ -275,6 +275,8 @@ body.is-admin #tx-cat-cfg-btn{display:inline-flex}
 
 /* ── CUSTOM MENU HEADER ──────────────────────────────────── */
 .menu-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.menu-curr-chip{display:none;align-items:center;flex:none;padding:0 12px;border-radius:20px;background:var(--acc);color:var(--accent-text);font-size:.72rem;font-weight:700;letter-spacing:.3px}
+@media (max-width:767px){.menu-header .menu-id{display:none!important}.menu-header{justify-content:flex-end}.menu-curr-chip{display:inline-flex}}
 
 /* ── TYPE TOGGLE (inc/exp) ───────────────────────────────── */
 .type-toggle{display:flex;gap:8px;margin-bottom:16px}
